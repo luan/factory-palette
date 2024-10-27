@@ -9,7 +9,7 @@ local search_gui = require("scripts.gui.search")
 local player_data = {}
 
 function player_data.init(player_index)
-    global.players[player_index] = {
+    storage.players[player_index] = {
         flags = {
             can_open_gui = false,
             show_message_after_translation = false,

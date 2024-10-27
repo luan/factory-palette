@@ -117,17 +117,17 @@ function logistic_request.refresh(player, player_table)
     }
     local character = player.character
     if character then
-        for i = 1, character.request_slot_count do
-            local filter = player.get_personal_logistic_slot(i)
-            if filter and filter.name then
-                filter.index = i
-                requests.by_index[i] = filter
-                requests.by_name[filter.name] = filter
-            end
-        end
+        -- for index, logistic_point in pairs(character.get_logistic_point()) do
+        --     local filter = player.get_personal_logistic_slot(i)
+        --     if filter and filter.name then
+        --         filter.index = i
+        --         requests.by_index[i] = filter
+        --         requests.by_name[filter.name] = filter
+        --     end
+        -- end
     end
     -- preserve valid temporary requests
-    local item_prototypes = game.item_prototypes
+    local item_prototypes = prototypes.item
     for item_name, request in pairs(player_table.logistic_requests.temporary) do
         if item_prototypes[item_name] then
             requests.temporary[item_name] = request
@@ -169,7 +169,7 @@ function logistic_request.quick_trash_all(player, player_table)
     if not requests then
         return
     end
-    local prototypes = game.item_prototypes
+    local prototypes = prototypes.item
     for name, count in pairs(search.get_combined_inventory_contents(player, main_inventory)) do
         if not constants.ignored_item_types[prototypes[name].type] then
             local existing_request = requests.by_name[name]

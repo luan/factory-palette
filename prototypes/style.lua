@@ -8,7 +8,7 @@ styles.qis_window_dimmer = {
     type = "frame_style",
     graphical_set = {
         base = {
-            filename = "__flib__.graphics/black.png",
+            filename = "__flib__/graphics/black.png",
             size = 1,
             opacity = 0.3,
         },
@@ -48,7 +48,18 @@ styles.qis_list_box_scroll_pane = {
 
 styles.qis_list_box_table = {
     type = "table_style",
-    -- parent = "mods_table",
+    horizontal_spacing = 0,
+    left_cell_padding = 8,
+    top_cell_padding = 2,
+    right_cell_padding = 8,
+    bottom_cell_padding = 2,
+    apply_row_graphical_set_per_column = true,
+    default_row_graphical_set = { position = { 208, 17 }, corner_size = 8 },
+    hovered_graphical_set = { position = { 34, 17 }, corner_size = 8 },
+    clicked_graphical_set = { position = { 51, 17 }, corner_size = 8 },
+    selected_graphical_set = { position = { 51, 17 }, corner_size = 8 },
+    selected_hovered_graphical_set = { position = { 369, 17 }, corner_size = 8 },
+    selected_clicked_graphical_set = { position = { 352, 17 }, corner_size = 8 },
     top_margin = -6, -- to hide the strange first row styling
     column_alignments = {
         { column = 1, alignment = "left" },

@@ -1,4 +1,4 @@
-local gui = require("__flib__.gui")
+local gui = require("gui")
 local math = require("__flib__.math")
 
 local constants = require("constants")
@@ -53,9 +53,9 @@ function infinity_filter_gui.build(player, player_table)
                         {
                             type = "sprite-button",
                             style = "frame_action_button",
-                            sprite = "utility/close_white",
-                            hovered_sprite = "utility/close_black",
-                            clicked_sprite = "utility/close_black",
+                            sprite = "utility/close",
+                            hovered_sprite = "utility/close",
+                            clicked_sprite = "utility/close",
                             actions = {
                                 on_click = { gui = "infinity_filter", action = "close", reopen_after_subwindow = true },
                             },
@@ -183,7 +183,7 @@ function infinity_filter_gui.open(player, player_table, item_data)
     local state = gui_data.state
 
     -- update state
-    local stack_size = game.item_prototypes[item_data.name].stack_size
+    local stack_size = prototypes.item[item_data.name].stack_size
     item_data.stack_size = stack_size
     state.item_data = item_data
     local infinity_filter_data = item_data.infinity_filter or { mode = "at-least", count = stack_size }
@@ -252,7 +252,7 @@ end
 
 function infinity_filter_gui.handle_action(e, msg)
     local player = game.get_player(e.player_index)
-    local player_table = global.players[e.player_index]
+    local player_table = storage.players[e.player_index]
     local gui_data = player_table.guis.infinity_filter
     local refs = gui_data.refs
     local state = gui_data.state

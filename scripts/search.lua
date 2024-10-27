@@ -1,4 +1,4 @@
-local dictionary = require("__flib__.dictionary-lite")
+local dictionary = require("__flib__.dictionary")
 
 local constants = require("constants")
 
@@ -15,7 +15,7 @@ function search.run(player, player_table, query, combined_contents)
         local settings = player_table.settings
         local translations = dictionary.get(player.index, "item")
 
-        local item_prototypes = game.item_prototypes
+        local item_prototypes = prototypes.item
         local character = player.character
 
         -- settings
@@ -60,7 +60,7 @@ function search.run(player, player_table, query, combined_contents)
         local i = 0
         for name, translation in pairs(translations) do
             if string.find(string.lower(translation), query) then
-                local hidden = item_prototypes[name].has_flag("hidden")
+                local hidden = false  -- item_prototypes[name].has_flag("hidden")
                 if show_hidden or not hidden then
                     local inventory_count = contents.inventory[name]
                     local logistic_count = contents.logistic[name]
@@ -133,8 +133,8 @@ function search.get_combined_inventory_contents(player, main_inventory)
     }) do
         local inventory = player.get_inventory(inventory_def)
         if inventory and inventory.valid then
-            for name, count in pairs(inventory.get_contents() or {}) do
-                combined_contents[name] = (combined_contents[name] or 0) + count
+            for index, item in ipairs(inventory.get_contents() or {}) do
+                combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
             end
         end
     end

@@ -1,4 +1,4 @@
-local gui = require("__flib__.gui")
+local gui = require("gui")
 local math = require("__flib__.math")
 
 local constants = require("constants")
@@ -59,9 +59,9 @@ function search_gui.build(player, player_table)
                         {
                             type = "sprite-button",
                             style = "frame_action_button",
-                            sprite = "utility/close_white",
-                            hovered_sprite = "utility/close_black",
-                            clicked_sprite = "utility/close_black",
+                            sprite = "utility/close",
+                            hovered_sprite = "utility/close",
+                            clicked_sprite = "utility/close",
                             actions = {
                                 on_click = { gui = "search", action = "close" },
                             },
@@ -104,7 +104,7 @@ function search_gui.build(player, player_table)
                                             style = "bold_label",
                                             caption = {
                                                 "",
-                                                "[img=utility/warning_white]  ",
+                                                "[img=utility/warning]  ",
                                                 { "gui.qis-not-connected-to-logistic-network" },
                                             },
                                         },
@@ -179,7 +179,7 @@ function search_gui.open(player, player_table)
     -- update the table right away
     search_gui.perform_search(player, player_table)
 
-    global.update_search_results[player.index] = true
+    storage.update_search_results[player.index] = true
 end
 
 function search_gui.close(player, player_table, force_close)
@@ -197,7 +197,7 @@ function search_gui.close(player, player_table, force_close)
             player.opened = nil
         end
     end
-    global.update_search_results[player.index] = nil
+    storage.update_search_results[player.index] = nil
 end
 
 function search_gui.toggle(player, player_table, force_open)
@@ -214,7 +214,7 @@ end
 
 function search_gui.reopen_after_subwindow(e)
     local player = game.get_player(e.player_index)
-    local player_table = global.players[e.player_index]
+    local player_table = storage.players[e.player_index]
     local gui_data = player_table.guis.search
 
     if gui_data then
@@ -233,7 +233,7 @@ function search_gui.reopen_after_subwindow(e)
             player.opened = gui_data.refs.window
         end
 
-        global.update_search_results[player.index] = true
+        storage.update_search_results[player.index] = true
     end
 end
 
@@ -432,9 +432,9 @@ end
 
 function search_gui.update_for_active_players()
     local tick = game.ticks_played
-    for player_index in pairs(global.update_search_results) do
+    for player_index in pairs(storage.update_search_results) do
         local player = game.get_player(player_index)
-        local player_table = global.players[player_index]
+        local player_table = storage.players[player_index]
         local gui_data = player_table.guis.search
         if gui_data then
             local state = gui_data.state
@@ -447,7 +447,7 @@ end
 
 function search_gui.handle_action(e, msg)
     local player = game.get_player(e.player_index)
-    local player_table = global.players[e.player_index]
+    local player_table = storage.players[e.player_index]
     local gui_data = player_table.guis.search
     local refs = gui_data.refs
     local state = gui_data.state

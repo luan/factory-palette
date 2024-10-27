@@ -66,7 +66,7 @@ function infinity_filter.refresh(player, player_table)
     end
     -- preserve valid temporary filters
     -- this shouldn't be needed in 99% of cases, as infinity filters are immediately satisfied
-    local item_prototypes = game.item_prototypes
+    local item_prototypes = prototypes.item
     for item_name, request in pairs(player_table.infinity_filters.temporary) do
         if item_prototypes[item_name] then
             infinity_filters.temporary[item_name] = request
