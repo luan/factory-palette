@@ -1,4 +1,4 @@
-require("__QuickItemSearch__/prototypes/custom-input")
-require("__QuickItemSearch__/prototypes/shortcut")
-require("__QuickItemSearch__/prototypes/sprite")
-require("__QuickItemSearch__/prototypes/style")
+require("prototypes.custom-input")
+require("prototypes.shortcut")
+require("prototypes.sprite")
+require("prototypes.style")
