@@ -124,9 +124,9 @@ function search_gui.build(player, player_table)
 											ref = { "results_table" },
 											children = {
 												-- dummy elements for the borked first row
-												{ type = "empty-widget" },
-												{ type = "empty-widget" },
-												{ type = "empty-widget" },
+												{ type = "empty-widget", style = "qis_empty_widget" },
+												{ type = "empty-widget", style = "qis_empty_widget" },
+												{ type = "empty-widget", style = "qis_empty_widget" },
 											},
 										},
 									},
@@ -373,7 +373,7 @@ function search_gui.perform_search(player, player_table, updated_query, combined
 		state.results = {}
 		-- add new dummy elements
 		for _ = 1, 3 do
-			results_table.add({ type = "empty-widget" })
+			results_table.add({ type = "empty-widget", style = "qis_empty_widget" })
 		end
 	end
 end

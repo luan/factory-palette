@@ -29,12 +29,28 @@ styles.qis_clickable_item_label = {
 	horizontally_stretchable = "on",
 }
 
+-- EMPTY WIDGET STYLES
+
+styles.qis_empty_widget = {
+	type = "empty_widget_style",
+	horizontally_stretchable = "on",
+}
+
 -- SCROLLPANE STYLES
 
 styles.qis_list_box_scroll_pane = {
 	type = "scroll_pane_style",
-	parent = "list_box_scroll_pane",
+	never_hide_by_search = true,
+	padding = 0,
+	extra_padding_when_activated = 0,
+	top_margin = 2,
 	graphical_set = {
+		base = {
+			position = { 17, 0 },
+			corner_size = 8,
+			center = { position = { 42, 8 }, size = 1 },
+			draw_type = "outer"
+		},
 		shadow = default_inner_shadow,
 	},
 	vertical_flow_style = {
