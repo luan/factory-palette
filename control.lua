@@ -160,7 +160,7 @@ script.on_event(defines.events.on_entity_logistic_slot_changed, function(e)
         if player then
             local player_table = storage.players[player.index]
             if player_table then
-                logistic_request.update(player, player_table, e.slot_index)
+                logistic_request.update(player, player_table, e.section, e.slot_index)
             end
         end
     end

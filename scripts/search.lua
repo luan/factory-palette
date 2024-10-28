@@ -60,7 +60,7 @@ function search.run(player, player_table, query, combined_contents)
         local i = 0
         for name, translation in pairs(translations) do
             if string.find(string.lower(translation), query) then
-                local hidden = false  -- item_prototypes[name].has_flag("hidden")
+                local hidden = false -- item_prototypes[name].has_flag("hidden")
                 if show_hidden or not hidden then
                     local inventory_count = contents.inventory[name]
                     local logistic_count = contents.logistic[name]
@@ -118,7 +118,10 @@ end
 
 function search.get_combined_inventory_contents(player, main_inventory)
     -- main inventory contents
-    local combined_contents = main_inventory.get_contents()
+    local combined_contents = {}
+    for _, item in ipairs(main_inventory.get_contents()) do
+        combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+    end
     -- cursor stack
     local cursor_stack = player.cursor_stack
     if cursor_stack and cursor_stack.valid_for_read then
@@ -133,7 +136,7 @@ function search.get_combined_inventory_contents(player, main_inventory)
     }) do
         local inventory = player.get_inventory(inventory_def)
         if inventory and inventory.valid then
-            for index, item in ipairs(inventory.get_contents() or {}) do
+            for _, item in ipairs(inventory.get_contents() or {}) do
                 combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
             end
         end
