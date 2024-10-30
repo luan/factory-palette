@@ -42,7 +42,7 @@ function cursor.set_stack(player, cursor_stack, player_table, item_name)
                 player.hand_location = { inventory = main_inventory.index, slot = new_stack_index }
             else
                 player.create_local_flying_text({
-                    text = { "message.qis-main-inventory-full" },
+                    text = { "message.fpal-main-inventory-full" },
                     create_at_cursor = true,
                 })
                 player.play_sound({

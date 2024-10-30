@@ -4,7 +4,7 @@ local styles = data.raw["gui-style"].default
 
 -- FRAME STYLES
 
-styles.qis_window_dimmer = {
+styles.fpal_window_dimmer = {
 	type = "frame_style",
 	graphical_set = {
 		base = {
@@ -17,28 +17,28 @@ styles.qis_window_dimmer = {
 
 -- LABEL STYLES
 
-styles.qis_clickable_label = {
+styles.fpal_clickable_label = {
 	type = "label_style",
 	hovered_font_color = constants.colors.hovered,
 	disabled_font_color = constants.colors.hovered,
 }
 
-styles.qis_clickable_item_label = {
+styles.fpal_clickable_item_label = {
 	type = "label_style",
-	parent = "qis_clickable_label",
+	parent = "fpal_clickable_label",
 	horizontally_stretchable = "on",
 }
 
 -- EMPTY WIDGET STYLES
 
-styles.qis_empty_widget = {
+styles.fpal_empty_widget = {
 	type = "empty_widget_style",
 	horizontally_stretchable = "on",
 }
 
 -- SCROLLPANE STYLES
 
-styles.qis_list_box_scroll_pane = {
+styles.fpal_list_box_scroll_pane = {
 	type = "scroll_pane_style",
 	never_hide_by_search = true,
 	padding = 0,
@@ -62,7 +62,7 @@ styles.qis_list_box_scroll_pane = {
 
 -- TABLE STYLES
 
-styles.qis_list_box_table = {
+styles.fpal_list_box_table = {
 	type = "table_style",
 	horizontal_spacing = 0,
 	left_cell_padding = 8,
@@ -85,7 +85,7 @@ styles.qis_list_box_table = {
 
 -- TEXTFIELD STYLES
 
-styles.qis_disablable_textfield = {
+styles.fpal_disablable_textfield = {
 	type = "textbox_style",
 	disabled_background = styles.textbox.default_background,
 	disabled_font_color = button_default_font_color,

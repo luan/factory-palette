@@ -82,10 +82,10 @@ constants.logistic_point_data = {
 constants.results_limit = 50
 
 constants.settings = {
-  auto_close = "qis-auto-close-window",
-  fuzzy_search = "qis-fuzzy-search",
-  show_hidden = "qis-show-hidden",
-  spawn_items_when_cheating = "qis-spawn-items-when-cheating",
+  auto_close = "fpal-auto-close-window",
+  fuzzy_search = "fpal-fuzzy-search",
+  show_hidden = "fpal-show-hidden",
+  spawn_items_when_cheating = "fpal-spawn-items-when-cheating",
 }
 
 return constants

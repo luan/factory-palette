@@ -7,7 +7,7 @@ local infinity_filter = require("scripts.infinity-filter")
 local infinity_filter_gui = {}
 
 function infinity_filter_gui.build(player, player_table)
-    if player.gui.screen.qis_infinity_filter_window then
+    if player.gui.screen.fpal_infinity_filter_window then
         infinity_filter_gui.destroy(player_table)
     end
     local resolution = player.display_resolution
@@ -27,7 +27,7 @@ function infinity_filter_gui.build(player, player_table)
         },
         {
             type = "frame",
-            name = "qis_infinity_filter_window",
+            name = "fpal_infinity_filter_window",
             direction = "vertical",
             visible = false,
             ref = { "window" },
@@ -46,7 +46,7 @@ function infinity_filter_gui.build(player, player_table)
                         {
                             type = "label",
                             style = "frame_title",
-                            caption = { "gui.qis-edit-infinity-filter" },
+                            caption = { "gui.fpal-edit-infinity-filter" },
                             ignored_by_interaction = true,
                         },
                         { type = "empty-widget", style = "flib_titlebar_drag_handle", ignored_by_interaction = true },
@@ -121,7 +121,7 @@ function infinity_filter_gui.build(player, player_table)
                                     type = "sprite-button",
                                     style = "item_and_count_select_confirm",
                                     sprite = "utility/check_mark",
-                                    tooltip = { "", { "gui.qis-set-infinity-filter" }, { "gui.qis-confirm" } },
+                                    tooltip = { "", { "gui.fpal-set-infinity-filter" }, { "gui.fpal-confirm" } },
                                     actions = {
                                         on_click = { gui = "infinity_filter", action = "set_filter" },
                                     },
@@ -130,8 +130,8 @@ function infinity_filter_gui.build(player, player_table)
                                     type = "sprite-button",
                                     style = "flib_tool_button_light_green",
                                     style_mods = { top_margin = 1 },
-                                    sprite = "qis_temporary_request",
-                                    tooltip = { "", { "gui.qis-set-temporary-infinity-filter" }, { "gui.qis-shift-confirm" } },
+                                    sprite = "fpal_temporary_request",
+                                    tooltip = { "", { "gui.fpal-set-temporary-infinity-filter" }, { "gui.fpal-shift-confirm" } },
                                     actions = {
                                         on_click = { gui = "infinity_filter", action = "set_filter", temporary = true },
                                     },
@@ -141,7 +141,7 @@ function infinity_filter_gui.build(player, player_table)
                                     style = "tool_button_red",
                                     style_mods = { top_margin = 1 },
                                     sprite = "utility/trash",
-                                    tooltip = { "", { "gui.qis-clear-infinity-filter" }, { "gui.qis-control-confirm" } },
+                                    tooltip = { "", { "gui.fpal-clear-infinity-filter" }, { "gui.fpal-control-confirm" } },
                                     actions = {
                                         on_click = { gui = "infinity_filter", action = "clear_filter" },
                                     },

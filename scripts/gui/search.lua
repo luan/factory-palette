@@ -1,4 +1,4 @@
-local gui = require("gui")
+local gui = require("__flib__.gui")
 local math = require("__flib__.math")
 
 local constants = require("constants")
@@ -10,61 +10,77 @@ local logistic_request_gui = require("scripts.gui.logistic-request")
 
 local search_gui = {}
 
+-- Define handlers
+local function handle_close(e)
+	local player = game.get_player(e.player_index)
+	local player_table = storage.players[e.player_index]
+	search_gui.close(player, player_table)
+end
+
+local function handle_recenter(e)
+	if e.button == defines.mouse_button_type.middle then
+		local player_table = storage.players[e.player_index]
+		local gui_data = player_table.guis.search
+		gui_data.refs.fpal_search_window.force_auto_center()
+	end
+end
+
+-- Register handlers
+gui.add_handlers({
+	close = handle_close,
+	recenter = handle_recenter,
+	-- Add other handlers here...
+}, nil, "search")
+
 function search_gui.build(player, player_table)
 	-- At some point it's possible for the player table to get out of sync... somehow.
-	local orphaned_dimmer = player.gui.screen.qis_window_dimmer
+	local orphaned_dimmer = player.gui.screen.fpal_window_dimmer
 	if orphaned_dimmer and orphaned_dimmer.valid then
 		orphaned_dimmer.destroy()
 	end
-	local orphaned_window = player.gui.screen.qis_search_window
+	local orphaned_window = player.gui.screen.fpal_search_window
 	if orphaned_window and orphaned_window.valid then
 		orphaned_window.destroy()
 	end
 	search_gui.destroy(player_table)
 
-	local refs = gui.build(player.gui.screen, {
+	local refs, window = gui.add(player.gui.screen, {
 		{
 			type = "frame",
-			style = "qis_window_dimmer",
+			style = "fpal_window_dimmer",
 			style_mods = { size = { 448, 390 } },
 			visible = false,
-			ref = { "window_dimmer" },
+			name = "fpal_window_dimmer",
 		},
 		{
 			type = "frame",
-			name = "qis_search_window",
+			name = "fpal_search_window",
 			direction = "vertical",
 			visible = false,
-			ref = { "window" },
-			actions = {
-				on_closed = { gui = "search", action = "close" },
-				on_location_changed = { gui = "search", action = "update_dimmer_location" },
+			handler = {
+				[defines.events.on_gui_closed] = "close",
+				[defines.events.on_gui_location_changed] = "recenter"
 			},
 			children = {
 				{
 					type = "flow",
 					style = "flib_titlebar_flow",
-					ref = { "titlebar_flow" },
-					actions = {
-						on_click = { gui = "search", action = "recenter" },
-					},
+					name = "titlebar_flow",
+					handler = "recenter",
 					children = {
 						{
-							type = "label",
-							style = "frame_title",
-							caption = { "mod-name.QuickItemSearch" },
+							type = "empty-widget",
+							style = "flib_titlebar_drag_handle",
 							ignored_by_interaction = true,
+							drag_target = "fpal_search_window"
 						},
-						{ type = "empty-widget", style = "flib_titlebar_drag_handle", ignored_by_interaction = true },
 						{
 							type = "sprite-button",
 							style = "frame_action_button",
 							sprite = "utility/close",
 							hovered_sprite = "utility/close",
 							clicked_sprite = "utility/close",
-							actions = {
-								on_click = { gui = "search", action = "close" },
-							},
+							handler = "close"
 						},
 					},
 				},
@@ -76,14 +92,14 @@ function search_gui.build(player, player_table)
 					children = {
 						{
 							type = "textfield",
-							style = "qis_disablable_textfield",
+							name = "search_textfield",
+							style = "fpal_disablable_textfield",
 							style_mods = { width = 400, top_margin = 9 },
 							clear_and_focus_on_right_click = true,
 							lose_focus_on_confirm = true,
-							ref = { "search_textfield" },
-							actions = {
-								on_confirmed = { gui = "search", action = "enter_result_selection" },
-								on_text_changed = { gui = "search", action = "update_search_query" },
+							handler = {
+								[defines.events.on_gui_confirmed] = "enter_result_selection",
+								[defines.events.on_gui_text_changed] = "update_search_query"
 							},
 						},
 						{
@@ -94,10 +110,10 @@ function search_gui.build(player, player_table)
 							children = {
 								{
 									type = "frame",
+									name = "warning_subheader",
 									style = "negative_subheader_frame",
 									style_mods = { left_padding = 12, height = 28, horizontally_stretchable = true },
 									visible = false,
-									ref = { "warning_subheader" },
 									children = {
 										{
 											type = "label",
@@ -105,28 +121,28 @@ function search_gui.build(player, player_table)
 											caption = {
 												"",
 												"[img=utility/warning]  ",
-												{ "gui.qis-not-connected-to-logistic-network" },
+												{ "gui.fpal-not-connected-to-logistic-network" },
 											},
 										},
 									},
 								},
 								{
 									type = "scroll-pane",
-									style = "qis_list_box_scroll_pane",
+									name = "results_scroll_pane",
+									style = "fpal_list_box_scroll_pane",
 									style_mods = { vertically_stretchable = true, bottom_padding = 2 },
-									ref = { "results_scroll_pane" },
 									visible = true,
 									children = {
 										{
 											type = "table",
-											style = "qis_list_box_table",
+											name = "results_table",
+											style = "fpal_list_box_table",
 											column_count = 3,
-											ref = { "results_table" },
 											children = {
 												-- dummy elements for the borked first row
-												{ type = "empty-widget", style = "qis_empty_widget" },
-												{ type = "empty-widget", style = "qis_empty_widget" },
-												{ type = "empty-widget", style = "qis_empty_widget" },
+												{ type = "empty-widget", style = "fpal_empty_widget" },
+												{ type = "empty-widget", style = "fpal_empty_widget" },
+												{ type = "empty-widget", style = "fpal_empty_widget" },
 											},
 										},
 									},
@@ -139,8 +155,11 @@ function search_gui.build(player, player_table)
 		},
 	})
 
-	refs.window.force_auto_center()
-	refs.titlebar_flow.drag_target = refs.window
+	window.force_auto_center()
+
+	-- The refs table is already populated by gui.add
+	refs.window = window
+	refs.window_dimmer = player.gui.screen.fpal_window_dimmer
 
 	player_table.guis.search = {
 		refs = refs,
@@ -160,10 +179,10 @@ function search_gui.destroy(player_table)
 	if not gui_data then
 		return
 	end
-	if not gui_data.window or not gui_data.window.valid then
+	if not gui_data.refs.window or not gui_data.refs.window.valid then
 		return
 	end
-	gui_data.window.valid.destroy()
+	gui_data.refs.window.destroy()
 	player_table.guis.search = nil
 end
 
@@ -171,7 +190,7 @@ function search_gui.open(player, player_table)
 	local gui_data = player_table.guis.search
 	gui_data.refs.window.visible = true
 	gui_data.state.visible = true
-	player.set_shortcut_toggled("qis-search", true)
+	player.set_shortcut_toggled("fpal-search", true)
 	player.opened = gui_data.refs.window
 
 	gui_data.refs.search_textfield.focus()
@@ -193,7 +212,7 @@ function search_gui.close(player, player_table, force_close)
 	elseif force_close or not state.subwindow_open then
 		refs.window.visible = false
 		state.visible = false
-		player.set_shortcut_toggled("qis-search", false)
+		player.set_shortcut_toggled("fpal-search", false)
 		if player.opened == refs.window then
 			player.opened = nil
 		end
@@ -223,7 +242,7 @@ function search_gui.reopen_after_subwindow(e)
 		local state = gui_data.state
 
 		refs.search_textfield.enabled = true
-		refs.window_dimmer.visible = false
+		refs.fpal_window_dimmer.visible = false
 		state.subwindow_open = false
 
 		search_gui.perform_search(player, player_table)
@@ -259,19 +278,19 @@ function search_gui.perform_search(player, player_table, updated_query, combined
 
 	local result_tooltip = {
 		"",
-		{ "gui.qis-result-click-tooltip" },
+		{ "gui.fpal-result-click-tooltip" },
 		"\n",
-		{ "gui.qis-shift-click" },
+		{ "gui.fpal-shift-click" },
 		" ",
-		(player.controller_type == defines.controllers.character and { "gui.qis-edit-logistic-request" } or {
-			"gui.qis-edit-infinity-filter",
+		(player.controller_type == defines.controllers.character and { "gui.fpal-edit-logistic-request" } or {
+			"gui.fpal-edit-infinity-filter",
 		}),
 	}
 
 	if #state.raw_query > 1 then
 		local i = 0
 		local results, connected_to_network, logistic_requests_available =
-			search.run(player, player_table, query, combined_contents)
+				search.run(player, player_table, query, combined_contents)
 		for _, row in ipairs(results) do
 			i = i + 1
 			local i3 = i * 3
@@ -281,9 +300,9 @@ function search_gui.perform_search(player, player_table, updated_query, combined
 				gui.build(results_table, {
 					{
 						type = "label",
-						style = "qis_clickable_item_label",
-						actions = {
-							on_click = { gui = "search", action = "select_item", index = i },
+						style = "fpal_clickable_item_label",
+						handlers = {
+							on_gui_click = { gui = "search", action = "select_item", index = i },
 						},
 					},
 					{ type = "label" },
@@ -348,17 +367,17 @@ function search_gui.perform_search(player, player_table, updated_query, combined
 		end
 		-- show or hide warning
 		if
-			logistic_requests_available
-			and player.controller_type == defines.controllers.character
-			and not connected_to_network
+				logistic_requests_available
+				and player.controller_type == defines.controllers.character
+				and not connected_to_network
 		then
 			refs.warning_subheader.visible = true
 		else
 			refs.warning_subheader.visible = false
 		end
 		if
-			player.controller_type == defines.controllers.god
-			or (player.controller_type == defines.controllers.character and not logistic_requests_available)
+				player.controller_type == defines.controllers.god
+				or (player.controller_type == defines.controllers.character and not logistic_requests_available)
 		then
 			results_table.style.right_margin = -15
 		else
@@ -373,7 +392,7 @@ function search_gui.perform_search(player, player_table, updated_query, combined
 		state.results = {}
 		-- add new dummy elements
 		for _ = 1, 3 do
-			results_table.add({ type = "empty-widget", style = "qis_empty_widget" })
+			results_table.add({ type = "empty-widget", style = "fpal_empty_widget" })
 		end
 	end
 end
@@ -398,8 +417,8 @@ function search_gui.select_item(player, player_table, modifiers, index)
 		if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
 			state.subwindow_open = true
 			refs.search_textfield.enabled = false
-			refs.window_dimmer.visible = true
-			refs.window_dimmer.bring_to_front()
+			refs.fpal_window_dimmer.visible = true
+			refs.fpal_window_dimmer.bring_to_front()
 
 			if player_controller == defines.controllers.editor then
 				infinity_filter_gui.open(player, player_table, result)
@@ -416,7 +435,7 @@ function search_gui.select_item(player, player_table, modifiers, index)
 		local cursor_stack = player.cursor_stack
 		if cursor_stack and cursor_stack.valid_for_read and cursor_stack.name == result.name then
 			player.play_sound({ path = "utility/cannot_build" })
-			player.create_local_flying_text({ text = { "message.qis-already-holding-item" }, create_at_cursor = true })
+			player.create_local_flying_text({ text = { "message.fpal-already-holding-item" }, create_at_cursor = true })
 		else
 			-- Close the window after selection if desired
 			if player_table.settings.auto_close then
@@ -456,7 +475,7 @@ function search_gui.handle_action(e, msg)
 	if msg.action == "close" then
 		search_gui.close(player, player_table)
 	elseif msg.action == "recenter" and e.button == defines.mouse_button_type.middle then
-		refs.window.force_auto_center()
+		refs.fpal_search_window.force_auto_center()
 	elseif msg.action == "update_search_query" then
 		local query = e.text
 		-- fuzzy search
@@ -496,7 +515,7 @@ function search_gui.handle_action(e, msg)
 	elseif msg.action == "select_item" then
 		search_gui.select_item(player, player_table, { shift = e.shift, control = e.control }, msg.index)
 	elseif msg.action == "update_dimmer_location" then
-		refs.window_dimmer.location = refs.window.location
+		refs.fpal_window_dimmer.location = refs.fpal_search_window.location
 	end
 end
 

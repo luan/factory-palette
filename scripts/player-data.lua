@@ -34,8 +34,8 @@ function player_data.refresh(player, player_table)
     end
 
     -- set shortcut state
-    player.set_shortcut_toggled("qis-search", false)
-    player.set_shortcut_available("qis-search", false)
+    player.set_shortcut_toggled("fpal-search", false)
+    player.set_shortcut_available("fpal-search", false)
 
     -- update settings
     player_data.update_settings(player, player_table)

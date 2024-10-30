@@ -1,2 +1,2 @@
-# Factorio-QuickItemSearch
-Factorio mod - quickly search for items in your inventory or connected logistic network.
+# Factorio Palette
+Factorio mod - Your shortcut to everything.

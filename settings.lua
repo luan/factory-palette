@@ -1,28 +1,28 @@
 local spawn_item_tooltip = {
   "",
-  { "mod-setting-description.qis-spawn-items-when-cheating" },
-  mods["space-exploration"] and { "", "\n\n", { "mod-setting-description.qis-spawn-items-when-cheating-se-addendum" } }
+  { "mod-setting-description.fpal-spawn-items-when-cheating" },
+  mods["space-exploration"] and { "", "\n\n", { "mod-setting-description.fpal-spawn-items-when-cheating-se-addendum" } }
     or "",
 }
 
 data:extend({
   {
     type = "bool-setting",
-    name = "qis-show-hidden",
+    name = "fpal-show-hidden",
     setting_type = "runtime-per-user",
     default_value = false,
     order = "ad",
   },
   {
     type = "bool-setting",
-    name = "qis-fuzzy-search",
+    name = "fpal-fuzzy-search",
     setting_type = "runtime-per-user",
     default_value = false,
     order = "ae",
   },
   {
     type = "bool-setting",
-    name = "qis-spawn-items-when-cheating",
+    name = "fpal-spawn-items-when-cheating",
     setting_type = "runtime-per-user",
     default_value = true,
     order = "af",
@@ -30,7 +30,7 @@ data:extend({
   },
   {
     type = "bool-setting",
-    name = "qis-auto-close-window",
+    name = "fpal-auto-close-window",
     setting_type = "runtime-per-user",
     default_value = false,
     order = "ag",

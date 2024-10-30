@@ -1,5 +1,5 @@
 local dictionary = require("__flib__.dictionary")
-local gui = require("gui")
+local gui = require("__flib__.gui")
 local migration = require("__flib__.migration")
 
 local global_data = require("scripts.global-data")
@@ -35,11 +35,12 @@ migration.handle_on_configuration_changed(migrations, function()
     for i, player_table in pairs(storage.players) do
         player_data.refresh(game.get_player(i), player_table)
     end
+    gui.build_tags_from_migrations()
 end)
 
 -- Custom input
 
-script.on_event({ "qis-confirm", "qis-shift-confirm", "qis-control-confirm" }, function(e)
+script.on_event({ "fpal-confirm", "fpal-shift-confirm", "fpal-control-confirm" }, function(e)
     local player = game.get_player(e.player_index)
     if not player then
         return
@@ -49,20 +50,20 @@ script.on_event({ "qis-confirm", "qis-shift-confirm", "qis-control-confirm" }, f
     -- HACK: This makes it easy to check if we should close the search GUI or not
     player_table.confirmed_tick = game.ticks_played
 
-    local is_shift = e.input_name == "qis-shift-confirm"
-    local is_control = e.input_name == "qis-control-confirm"
+    local is_shift = e.input_name == "fpal-shift-confirm"
+    local is_control = e.input_name == "fpal-control-confirm"
 
     local opened = player.opened
     if opened and player.opened_gui_type == defines.gui_type.custom then
-        if opened.name == "qis_search_window" then
+        if opened.name == "fpal_search_window" then
             search_gui.select_item(player, player_table, { shift = is_shift, control = is_control })
-        elseif opened.name == "qis_request_window" then
+        elseif opened.name == "fpal_request_window" then
             if is_control then
                 logistic_request_gui.clear_request(player, player_table)
             else
                 logistic_request_gui.set_request(player, player_table, is_shift)
             end
-        elseif opened.name == "qis_infinity_filter_window" then
+        elseif opened.name == "fpal_infinity_filter_window" then
             if is_control then
                 infinity_filter_gui.clear_filter(player, player_table)
             else
@@ -72,7 +73,7 @@ script.on_event({ "qis-confirm", "qis-shift-confirm", "qis-control-confirm" }, f
     end
 end)
 
-script.on_event("qis-cycle-infinity-filter-mode", function(e)
+script.on_event("fpal-cycle-infinity-filter-mode", function(e)
     local player_table = storage.players[e.player_index]
     local gui_data = player_table.guis.infinity_filter
     if gui_data then
@@ -83,7 +84,7 @@ script.on_event("qis-cycle-infinity-filter-mode", function(e)
     end
 end)
 
-script.on_event("qis-search", function(e)
+script.on_event("fpal-search", function(e)
     local player = game.get_player(e.player_index)
     if not player then
         return
@@ -93,11 +94,11 @@ script.on_event("qis-search", function(e)
         search_gui.toggle(player, player_table, false)
     else
         player_table.flags.show_message_after_translation = true
-        player.print({ "message.qis-cannot-open-gui" })
+        player.print({ "message.fpal-cannot-open-gui" })
     end
 end)
 
-script.on_event({ "qis-nav-up", "qis-nav-down" }, function(e)
+script.on_event({ "fpal-nav-up", "fpal-nav-down" }, function(e)
     local player_table = storage.players[e.player_index]
     if player_table.flags.can_open_gui then
         local gui_data = player_table.guis.search
@@ -109,7 +110,7 @@ script.on_event({ "qis-nav-up", "qis-nav-down" }, function(e)
     end
 end)
 
-script.on_event("qis-quick-trash-all", function(e)
+script.on_event("fpal-quick-trash-all", function(e)
     local player = game.get_player(e.player_index)
     if not player then
         return
@@ -137,7 +138,7 @@ script.on_event(dictionary.on_player_dictionaries_ready, function(e)
     local player_table = storage.players[e.player_index]
     -- show message if needed
     if player_table.flags.show_message_after_translation then
-        player.print({ "message.qis-can-open-gui" })
+        player.print({ "message.fpal-can-open-gui" })
     end
     -- update flags
     player_table.flags.can_open_gui = true
@@ -147,7 +148,7 @@ script.on_event(dictionary.on_player_dictionaries_ready, function(e)
     logistic_request_gui.build(player, player_table)
     search_gui.build(player, player_table)
     -- enable shortcut
-    player.set_shortcut_available("qis-search", true)
+    player.set_shortcut_available("fpal-search", true)
 end)
 
 -- Entity
@@ -168,22 +169,7 @@ end)
 
 -- GUI
 
-gui.hook_events(function(e)
-    local msg = gui.read_action(e)
-    if msg then
-        if msg.gui == "infinity_filter" then
-            infinity_filter_gui.handle_action(e, msg)
-        elseif msg.gui == "request" then
-            logistic_request_gui.handle_action(e, msg)
-        elseif msg.gui == "search" then
-            search_gui.handle_action(e, msg)
-        end
-
-        if msg.reopen_after_subwindow then
-            search_gui.reopen_after_subwindow(e)
-        end
-    end
-end)
+gui.handle_events()
 
 -- Player
 
@@ -255,7 +241,7 @@ end)
 -- Settings
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
-    if string.sub(e.setting, 1, 4) == "qis-" and e.setting_type == "runtime-per-user" then
+    if string.sub(e.setting, 1, 4) == "fpal-" and e.setting_type == "runtime-per-user" then
         local player = game.get_player(e.player_index)
         if not player then
             return
@@ -268,7 +254,7 @@ end)
 -- Shortcut
 
 script.on_event(defines.events.on_lua_shortcut, function(e)
-    if e.prototype_name == "qis-search" then
+    if e.prototype_name == "fpal-search" then
         local player = game.get_player(e.player_index)
         if not player then
             return
