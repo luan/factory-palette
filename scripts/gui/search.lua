@@ -1,4 +1,4 @@
-local gui = require("__flib__.gui")
+local flib_gui = require("__flib__.gui")
 local math = require("__flib__.math")
 
 local constants = require("constants")
@@ -9,70 +9,50 @@ local infinity_filter_gui = require("scripts.gui.infinity-filter")
 local logistic_request_gui = require("scripts.gui.logistic-request")
 
 local search_gui = {}
-
--- Define handlers
-local function handle_close(e)
-	local player = game.get_player(e.player_index)
-	local player_table = storage.players[e.player_index]
-	search_gui.close(player, player_table)
-end
-
-local function handle_recenter(e)
-	if e.button == defines.mouse_button_type.middle then
-		local player_table = storage.players[e.player_index]
-		local gui_data = player_table.guis.search
-		gui_data.refs.fpal_search_window.force_auto_center()
-	end
-end
-
--- Register handlers
-gui.add_handlers({
-	close = handle_close,
-	recenter = handle_recenter,
-	-- Add other handlers here...
-}, nil, "search")
+local handlers = {}
 
 function search_gui.build(player, player_table)
-	-- At some point it's possible for the player table to get out of sync... somehow.
-	local orphaned_dimmer = player.gui.screen.fpal_window_dimmer
+	-- At some point it's possible for the player table to get outf sync... somehow.
+	local orphaned_dimmer = player.gui.screen.window_dimmer
 	if orphaned_dimmer and orphaned_dimmer.valid then
 		orphaned_dimmer.destroy()
 	end
-	local orphaned_window = player.gui.screen.fpal_search_window
+	local orphaned_window = player.gui.screen.window
 	if orphaned_window and orphaned_window.valid then
 		orphaned_window.destroy()
 	end
 	search_gui.destroy(player_table)
 
-	local refs, window = gui.add(player.gui.screen, {
+	local refs = flib_gui.add(player.gui.screen, {
 		{
+			name = "window_dimmer",
 			type = "frame",
 			style = "fpal_window_dimmer",
 			style_mods = { size = { 448, 390 } },
 			visible = false,
-			name = "fpal_window_dimmer",
 		},
 		{
+			name = "window",
 			type = "frame",
-			name = "fpal_search_window",
 			direction = "vertical",
 			visible = false,
+			elem_mods = { auto_center = true },
 			handler = {
-				[defines.events.on_gui_closed] = "close",
-				[defines.events.on_gui_location_changed] = "recenter"
+				[defines.events.on_gui_closed] = handlers.on_close,
+				[defines.events.on_gui_location_changed] = handlers.relocate_dimmer,
 			},
 			children = {
 				{
+					name = "titlebar_flow",
 					type = "flow",
 					style = "flib_titlebar_flow",
-					name = "titlebar_flow",
-					handler = "recenter",
+					drag_target = "window",
+					handler = handlers.recenter,
 					children = {
 						{
 							type = "empty-widget",
 							style = "flib_titlebar_drag_handle",
 							ignored_by_interaction = true,
-							drag_target = "fpal_search_window"
 						},
 						{
 							type = "sprite-button",
@@ -80,7 +60,7 @@ function search_gui.build(player, player_table)
 							sprite = "utility/close",
 							hovered_sprite = "utility/close",
 							clicked_sprite = "utility/close",
-							handler = "close"
+							handler = handlers.on_close,
 						},
 					},
 				},
@@ -91,15 +71,15 @@ function search_gui.build(player, player_table)
 					direction = "vertical",
 					children = {
 						{
-							type = "textfield",
 							name = "search_textfield",
+							type = "textfield",
 							style = "fpal_disablable_textfield",
 							style_mods = { width = 400, top_margin = 9 },
 							clear_and_focus_on_right_click = true,
 							lose_focus_on_confirm = true,
 							handler = {
-								[defines.events.on_gui_confirmed] = "enter_result_selection",
-								[defines.events.on_gui_text_changed] = "update_search_query"
+								[defines.events.on_gui_confirmed] = handlers.enter_result_selection,
+								[defines.events.on_gui_text_changed] = handlers.update_search_query,
 							},
 						},
 						{
@@ -109,8 +89,8 @@ function search_gui.build(player, player_table)
 							direction = "vertical",
 							children = {
 								{
-									type = "frame",
 									name = "warning_subheader",
+									type = "frame",
 									style = "negative_subheader_frame",
 									style_mods = { left_padding = 12, height = 28, horizontally_stretchable = true },
 									visible = false,
@@ -127,15 +107,15 @@ function search_gui.build(player, player_table)
 									},
 								},
 								{
-									type = "scroll-pane",
 									name = "results_scroll_pane",
+									type = "scroll-pane",
 									style = "fpal_list_box_scroll_pane",
 									style_mods = { vertically_stretchable = true, bottom_padding = 2 },
 									visible = true,
 									children = {
 										{
-											type = "table",
 											name = "results_table",
+											type = "table",
 											style = "fpal_list_box_table",
 											column_count = 3,
 											children = {
@@ -154,12 +134,6 @@ function search_gui.build(player, player_table)
 			},
 		},
 	})
-
-	window.force_auto_center()
-
-	-- The refs table is already populated by gui.add
-	refs.window = window
-	refs.window_dimmer = player.gui.screen.fpal_window_dimmer
 
 	player_table.guis.search = {
 		refs = refs,
@@ -187,6 +161,8 @@ function search_gui.destroy(player_table)
 end
 
 function search_gui.open(player, player_table)
+	search_gui.destroy(player_table)
+	search_gui.build(player, player_table)
 	local gui_data = player_table.guis.search
 	gui_data.refs.window.visible = true
 	gui_data.state.visible = true
@@ -242,7 +218,7 @@ function search_gui.reopen_after_subwindow(e)
 		local state = gui_data.state
 
 		refs.search_textfield.enabled = true
-		refs.fpal_window_dimmer.visible = false
+		refs.window_dimmer.visible = false
 		state.subwindow_open = false
 
 		search_gui.perform_search(player, player_table)
@@ -297,12 +273,13 @@ function search_gui.perform_search(player, player_table, updated_query, combined
 
 			-- build rowf if nonexistent
 			if not results_table.children[i3 + 1] then
-				gui.build(results_table, {
+				flib_gui.add(results_table, {
 					{
 						type = "label",
 						style = "fpal_clickable_item_label",
-						handlers = {
-							on_gui_click = { gui = "search", action = "select_item", index = i },
+						tags = { index = i },
+						handler = {
+							[defines.events.on_gui_click] = handlers.select_item,
 						},
 					},
 					{ type = "label" },
@@ -417,8 +394,8 @@ function search_gui.select_item(player, player_table, modifiers, index)
 		if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
 			state.subwindow_open = true
 			refs.search_textfield.enabled = false
-			refs.fpal_window_dimmer.visible = true
-			refs.fpal_window_dimmer.bring_to_front()
+			refs.window_dimmer.visible = true
+			refs.window_dimmer.bring_to_front()
 
 			if player_controller == defines.controllers.editor then
 				infinity_filter_gui.open(player, player_table, result)
@@ -450,6 +427,19 @@ function search_gui.select_item(player, player_table, modifiers, index)
 	end
 end
 
+function search_gui.update_selected_index(player_index, offset)
+	local gui_data = storage.players[player_index].guis.search
+	local refs = gui_data.refs
+	local state = gui_data.state
+	local results_table = refs.results_table
+	local selected_index = state.selected_index
+	results_table.children[selected_index * 3 + 1].style.font_color = constants.colors.normal
+	local new_selected_index = math.clamp(selected_index + offset, 1, #results_table.children / 3 - 1)
+	state.selected_index = new_selected_index
+	results_table.children[new_selected_index * 3 + 1].style.font_color = constants.colors.hovered
+	refs.results_scroll_pane.scroll_to_element(results_table.children[new_selected_index * 3 + 1], "top-third")
+end
+
 function search_gui.update_for_active_players()
 	local tick = game.ticks_played
 	for player_index in pairs(storage.update_search_results) do
@@ -465,58 +455,123 @@ function search_gui.update_for_active_players()
 	end
 end
 
-function search_gui.handle_action(e, msg)
-	local player = game.get_player(e.player_index)
-	local player_table = storage.players[e.player_index]
+-- Define handlers
+function handlers.on_close(player, player_table)
+	search_gui.close(player, player_table)
+end
+
+function handlers.select_item(player, player_table, e)
+	if not e.element or not e.element.tags or not e.element.tags.index then
+		return
+	end
+	search_gui.select_item(player, player_table, { shift = e.shift, control = e.control }, e.element.tags.index)
+end
+
+function handlers.recenter(player, player_table, e)
+	if e.button == defines.mouse_button_type.middle then
+		local gui_data = player_table.guis.search
+		gui_data.refs.window.force_auto_center()
+	end
+end
+
+function handlers.relocate_dimmer(player, player_table, e)
+	local gui_data = player_table.guis.search
+	gui_data.refs.window_dimmer.location = gui_data.refs.window.location
+end
+
+function handlers.enter_result_selection(player, player_table, e)
 	local gui_data = player_table.guis.search
 	local refs = gui_data.refs
 	local state = gui_data.state
+	if #refs.results_table.children == 3 then
+		refs.search_textfield.focus()
+		return
+	end
+	refs.results_scroll_pane.focus()
+	if state.selected_index > ((#refs.results_table.children - 3) / 3) then
+		state.selected_index = 1
+	end
+	refs.results_table.children[state.selected_index * 3 + 1].style.font_color = constants.colors.hovered
+end
 
-	if msg.action == "close" then
-		search_gui.close(player, player_table)
-	elseif msg.action == "recenter" and e.button == defines.mouse_button_type.middle then
-		refs.fpal_search_window.force_auto_center()
-	elseif msg.action == "update_search_query" then
-		local query = e.text
-		-- fuzzy search
-		if player_table.settings.fuzzy_search then
-			query = string.gsub(query, ".", "%1.*")
-		end
-		-- input sanitization
-		for pattern, replacement in pairs(constants.input_sanitizers) do
-			query = string.gsub(query, pattern, replacement)
-		end
-		state.query = query
-		state.raw_query = e.text
-		search_gui.perform_search(player, player_table, true)
-	elseif msg.action == "perform_search" then
-		-- perform search without updating query
-		search_gui.perform_search(player, player_table)
-	elseif msg.action == "enter_result_selection" then
-		if #refs.results_table.children == 3 then
-			refs.search_textfield.focus()
-			return
-		else
-			refs.results_scroll_pane.focus()
-		end
-		if state.selected_index > ((#refs.results_table.children - 3) / 3) then
-			state.selected_index = 1
-		end
-		local results_table = refs.results_table
-		results_table.children[state.selected_index * 3 + 1].style.font_color = constants.colors.hovered
-	elseif msg.action == "update_selected_index" then
-		local results_table = refs.results_table
-		local selected_index = state.selected_index
-		results_table.children[selected_index * 3 + 1].style.font_color = constants.colors.normal
-		local new_selected_index = math.clamp(selected_index + msg.offset, 1, #results_table.children / 3 - 1)
-		state.selected_index = new_selected_index
-		results_table.children[new_selected_index * 3 + 1].style.font_color = constants.colors.hovered
-		refs.results_scroll_pane.scroll_to_element(results_table.children[new_selected_index * 3 + 1], "top-third")
-	elseif msg.action == "select_item" then
-		search_gui.select_item(player, player_table, { shift = e.shift, control = e.control }, msg.index)
-	elseif msg.action == "update_dimmer_location" then
-		refs.fpal_window_dimmer.location = refs.fpal_search_window.location
+function handlers.update_search_query(player, player_table, e)
+	local gui_data = player_table.guis.search
+	local query = e.text
+	-- fuzzy search
+	if player_table.settings.fuzzy_search then
+		query = string.gsub(query, ".", "%1.*")
+	end
+	-- input sanitization
+	for pattern, replacement in pairs(constants.input_sanitizers) do
+		query = string.gsub(query, pattern, replacement)
+	end
+	gui_data.state.query = query
+	gui_data.state.raw_query = e.text
+	search_gui.perform_search(player, player_table, true)
+end
+
+function handlers.perform_search(player, player_table, e)
+	search_gui.perform_search(player, player_table, true)
+end
+
+function handlers.toggle_search_gui(player, player_table)
+	if player_table.flags.can_open_gui then
+		search_gui.toggle(player, player_table, false)
+	else
+		player_table.flags.show_message_after_translation = true
+		player.print({ "message.fpal-cannot-open-gui" })
 	end
 end
+
+---@param handler fun(e: EventData)
+---@return fun(e: EventData)
+function handlers.with_gui_check(handler)
+	return function(e)
+		local player_table = storage.players[e.player_index]
+		if not player_table.flags.can_open_gui then
+			return
+		end
+		local gui_data = player_table.guis.search
+		if gui_data.state.visible then
+			handler(e)
+		end
+	end
+end
+
+---@param field string
+---@param value any
+---@param handler fun(e: EventData)
+---@return fun(e: EventData)
+function handlers.with_event_condition(field, value, handler)
+	return function(e)
+		if e[field] == value then
+			handler(e)
+		end
+	end
+end
+
+---@param handler fun(player: LuaPlayer, player_table: table, e: EventData)
+---@return fun(e: EventData)
+function handlers.with_player(handler)
+	return function(e)
+		local player = game.get_player(e.player_index)
+		local player_table = storage.players[e.player_index]
+		if player and player_table then
+			handler(player, player_table, e)
+		end
+	end
+end
+
+search_gui.events = {
+	["fpal-nav-up"] = handlers.with_gui_check(function(e) search_gui.update_selected_index(e.player_index, -1) end),
+	["fpal-nav-down"] = handlers.with_gui_check(function(e) search_gui.update_selected_index(e.player_index, 1) end),
+	["fpal-search"] = handlers.with_player(handlers.toggle_search_gui),
+	[defines.events.on_lua_shortcut] = handlers.with_event_condition("prototype_name", "fpal-search",
+		handlers.with_player(handlers.toggle_search_gui)),
+}
+
+flib_gui.add_handlers(handlers, function(e, handler)
+	handlers.with_player(handler)(e)
+end)
 
 return search_gui

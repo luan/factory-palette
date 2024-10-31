@@ -2,7 +2,7 @@ data:extend({
   {
     type = "custom-input",
     name = "fpal-search",
-    key_sequence = "SHIFT + F",
+    key_sequence = "COMMAND + K",
     order = "a",
   },
   {

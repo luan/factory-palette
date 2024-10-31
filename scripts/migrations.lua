@@ -1,5 +1,15 @@
-local global_data = require("scripts.global-data")
-local player_data = require("scripts.player-data")
+local flib_migration = require("__flib__.migration")
 
-return {
+local by_version = {
 }
+
+--- @param e ConfigurationChangedData
+local function on_configuration_changed(e)
+  flib_migration.on_config_changed(e, by_version)
+end
+
+local migrations = {}
+
+migrations.on_configuration_changed = on_configuration_changed
+
+return migrations

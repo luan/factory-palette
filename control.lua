@@ -1,45 +1,32 @@
-local dictionary = require("__flib__.dictionary")
-local gui = require("__flib__.gui")
-local migration = require("__flib__.migration")
+local handler = require("__core__.lualib.event_handler")
+-- local dictionary = require("__flib__.dictionary")
 
-local global_data = require("scripts.global-data")
-local infinity_filter = require("scripts.infinity-filter")
-local migrations = require("scripts.migrations")
-local player_data = require("scripts.player-data")
-local logistic_request = require("scripts.logistic-request")
-local search = require("scripts.search")
+-- local infinity_filter = require("scripts.infinity-filter")
+-- local logistic_request = require("scripts.logistic-request")
+-- local search = require("scripts.search")
 
-local infinity_filter_gui = require("scripts.gui.infinity-filter")
-local logistic_request_gui = require("scripts.gui.logistic-request")
-local search_gui = require("scripts.gui.search")
+-- local infinity_filter_gui = require("scripts.gui.infinity-filter")
+-- local logistic_request_gui = require("scripts.gui.logistic-request")
+-- local search_gui = require("scripts.gui.search")
 
--- Bootstrap
+handler.add_libraries({
+    require("scripts.migrations"),
+    
+    require("__flib__.gui"),
+    require("__flib__.dictionary"),
 
-script.on_init(function()
-    dictionary.on_init()
+    require("scripts.global-data"),
+    require("scripts.gui"),
+    require("scripts.gui.search"),
+    require("scripts.player-data"),
+})
 
-    global_data.init()
-    global_data.build_dictionary()
-
-    for i in pairs(game.players) do
-        player_data.init(i)
-        player_data.refresh(game.get_player(i), storage.players[i])
-    end
+script.on_event("fpal-quick-trash-all", function(e)
+    game.reload_script()
 end)
 
-migration.handle_on_configuration_changed(migrations, function()
-    dictionary.on_configuration_changed()
-
-    global_data.build_dictionary()
-
-    for i, player_table in pairs(storage.players) do
-        player_data.refresh(game.get_player(i), player_table)
-    end
-    gui.build_tags_from_migrations()
-end)
-
+--[[
 -- Custom input
-
 script.on_event({ "fpal-confirm", "fpal-shift-confirm", "fpal-control-confirm" }, function(e)
     local player = game.get_player(e.player_index)
     if not player then
@@ -84,32 +71,7 @@ script.on_event("fpal-cycle-infinity-filter-mode", function(e)
     end
 end)
 
-script.on_event("fpal-search", function(e)
-    local player = game.get_player(e.player_index)
-    if not player then
-        return
-    end
-    local player_table = storage.players[e.player_index]
-    if player_table.flags.can_open_gui then
-        search_gui.toggle(player, player_table, false)
-    else
-        player_table.flags.show_message_after_translation = true
-        player.print({ "message.fpal-cannot-open-gui" })
-    end
-end)
-
-script.on_event({ "fpal-nav-up", "fpal-nav-down" }, function(e)
-    local player_table = storage.players[e.player_index]
-    if player_table.flags.can_open_gui then
-        local gui_data = player_table.guis.search
-        if gui_data.state.visible then
-            local offset = string.find(e.input_name, "down") and 1 or -1
-            search_gui.handle_action({ player_index = e.player_index },
-                { action = "update_selected_index", offset = offset })
-        end
-    end
-end)
-
+-- TODO: split into the modules
 script.on_event("fpal-quick-trash-all", function(e)
     local player = game.get_player(e.player_index)
     if not player then
@@ -121,34 +83,6 @@ script.on_event("fpal-quick-trash-all", function(e)
     elseif player.controller_type == defines.controllers.editor then
         infinity_filter.quick_trash_all(player, player_table)
     end
-end)
-
--- Dictionaries
-
-dictionary.handle_events()
-
-script.on_event(dictionary.on_player_dictionaries_ready, function(e)
-    local player = game.get_player(e.player_index)
-    if not player then
-        return
-    end
-    if not player then
-        return
-    end
-    local player_table = storage.players[e.player_index]
-    -- show message if needed
-    if player_table.flags.show_message_after_translation then
-        player.print({ "message.fpal-can-open-gui" })
-    end
-    -- update flags
-    player_table.flags.can_open_gui = true
-    player_table.flags.show_message_after_translation = false
-    -- create GUIs
-    infinity_filter_gui.build(player, player_table)
-    logistic_request_gui.build(player, player_table)
-    search_gui.build(player, player_table)
-    -- enable shortcut
-    player.set_shortcut_available("fpal-search", true)
 end)
 
 -- Entity
@@ -167,77 +101,6 @@ script.on_event(defines.events.on_entity_logistic_slot_changed, function(e)
     end
 end)
 
--- GUI
-
-gui.handle_events()
-
--- Player
-
-script.on_event(defines.events.on_player_created, function(e)
-    player_data.init(e.player_index)
-    player_data.refresh(game.get_player(e.player_index), storage.players[e.player_index])
-end)
-
-script.on_event(defines.events.on_player_removed, function(e)
-    storage.players[e.player_index] = nil
-end)
-
-script.on_event({
-    defines.events.on_player_display_resolution_changed,
-    defines.events.on_player_display_scale_changed,
-}, function(e)
-    local player = game.get_player(e.player_index)
-    if not player then
-        return
-    end
-    local player_table = storage.players[e.player_index]
-    logistic_request_gui.update_focus_frame_size(player, player_table)
-end)
-
-script.on_event({
-    defines.events.on_player_ammo_inventory_changed,
-    defines.events.on_player_armor_inventory_changed,
-    defines.events.on_player_gun_inventory_changed,
-    defines.events.on_player_main_inventory_changed,
-}, function(e)
-    local player = game.get_player(e.player_index)
-    if not player then
-        return
-    end
-    local player_table = storage.players[e.player_index]
-
-    local main_inventory = player.get_main_inventory()
-    if main_inventory and main_inventory.valid then
-        -- avoid getting the contents until they're actually needed
-        local combined_contents
-        local function get_combined_contents()
-            if not combined_contents then
-                combined_contents = search.get_combined_inventory_contents(player, main_inventory)
-            end
-            return combined_contents
-        end
-
-        if player.controller_type == defines.controllers.editor then
-            if next(player_table.infinity_filters.temporary) then
-                infinity_filter.update_temporaries(player, player_table)
-            end
-            infinity_filter.update(player, player_table)
-        elseif player.controller_type == defines.controllers.character then
-            if next(player_table.logistic_requests.temporary) then
-                logistic_request.update_temporaries(player, player_table, get_combined_contents())
-            end
-        end
-
-        local gui_data = player_table.guis.search
-        if gui_data then
-            local state = gui_data.state
-            if state.visible and not state.subwindow_open then
-                search_gui.perform_search(player, player_table, false, get_combined_contents())
-            end
-        end
-    end
-end)
-
 -- Settings
 
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
@@ -251,21 +114,6 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(e)
     end
 end)
 
--- Shortcut
-
-script.on_event(defines.events.on_lua_shortcut, function(e)
-    if e.prototype_name == "fpal-search" then
-        local player = game.get_player(e.player_index)
-        if not player then
-            return
-        end
-        local player_table = storage.players[e.player_index]
-        if player_table.flags.can_open_gui then
-            search_gui.toggle(player, player_table, true)
-        end
-    end
-end)
-
 -- Tick
 
 script.on_event(defines.events.on_tick, function()
@@ -275,3 +123,4 @@ script.on_event(defines.events.on_tick, function()
         search_gui.update_for_active_players()
     end
 end)
+--]]
