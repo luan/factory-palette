@@ -12,7 +12,6 @@ function gui.init(player, player_table)
   if player_table.flags.show_message_after_translation then
     player.print({ "message.fpal-can-open-gui" })
   end
-  player.print("potato")
   -- update flags
   player_table.flags.can_open_gui = true
   player_table.flags.show_message_after_translation = false
