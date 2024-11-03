@@ -1,12 +1,13 @@
 local flib_gui = require("__flib__.gui")
 local math = require("__flib__.math")
 
-local h = require("scripts.gui.handlers").for_gui("search")
+local events = require("events")
 local constants = require("constants")
+local h = require("handlers").for_gui("search")
+
 local cursor = require("scripts.cursor")
 local search = require("scripts.search")
 
-local infinity_filter_gui = require("scripts.gui.infinity-filter")
 local logistic_request_gui = require("scripts.gui.logistic-request")
 
 ---@class SearchGuiState
@@ -48,11 +49,9 @@ function handlers.relocate_dimmer(args)
 end
 
 function handlers.update_selected_index(args)
-  local player_table = args.player_table
   local offset = args.offset
-  local gui_data = player_table.guis.search
-  local elems = gui_data.elems
-  local state = gui_data.state
+  local elems = args.gui_data.elems
+  local state = args.gui_data.state
   local results_table = elems.results_table
   local selected_index = state.selected_index
   results_table.children[selected_index * 3 + 1].style.font_color = constants.colors.normal
@@ -80,11 +79,9 @@ function handlers.enter_result_selection(args)
 end
 
 function handlers.update_search_query(args, e)
-  local player, player_table = args.player, args.player_table
-  local gui_data = player_table.guis.search
   local query = e.text
 
-  if player_table.settings.fuzzy_search then
+  if args.player_table.settings.fuzzy_search then
     query = string.gsub(query, ".", "%1.*")
   end
 
@@ -93,9 +90,9 @@ function handlers.update_search_query(args, e)
     query = string.gsub(query, pattern, replacement)
   end
 
-  gui_data.state.query = query
-  gui_data.state.raw_query = e.text
-  gui.perform_search(player, player_table, true)
+  args.gui_data.state.query = query
+  args.gui_data.state.raw_query = e.text
+  gui.perform_search(args.player, args.player_table, args.gui_data, true)
 end
 
 function handlers.toggle_search_gui(args)
@@ -106,6 +103,30 @@ function handlers.toggle_search_gui(args)
     return
   end
   gui.toggle(player, player_table, false)
+end
+
+function handlers.reopen_after_subwindow(args)
+  local player, player_table = args.player, args.player_table
+  local gui_data = args.gui_data
+  if not gui_data then
+    return
+  end
+  local elems = gui_data.elems
+  local state = gui_data.state
+
+  elems.search_textfield.enabled = true
+  elems.window_dimmer.visible = false
+  state.subwindow_open = false
+
+  gui.perform_search(player, player_table, gui_data)
+
+  if player_table.settings.auto_close and player_table.confirmed_tick == game.ticks_played then
+    gui.close(player, player_table)
+  else
+    player.opened = gui_data.elems.window
+  end
+
+  storage.update_search_results[player.index] = true
 end
 
 ---@param results_table LuaGuiElement
@@ -121,9 +142,7 @@ end
 ---@param player LuaPlayer
 ---@param player_table table
 ---@param results table[]
----@param connected_to_network boolean
----@param logistic_requests_available boolean
-function gui.update_results_table(player, player_table, results, connected_to_network, logistic_requests_available)
+function gui.update_results_table(player, player_table, results)
   local gui_data = player_table.guis.search
   local elems = gui_data.elems
   local results_table = elems.results_table
@@ -135,9 +154,7 @@ function gui.update_results_table(player, player_table, results, connected_to_ne
     "\n",
     { "gui.fpal-shift-click" },
     " ",
-    (player.controller_type == defines.controllers.character and { "gui.fpal-edit-logistic-request" } or {
-      "gui.fpal-edit-infinity-filter",
-    }),
+    "gui.fpal-edit-logistic-request",
   }
 
   local i = 0
@@ -169,7 +186,7 @@ function gui.update_results_table(player, player_table, results, connected_to_ne
     item_label.caption = hidden_abbrev .. "[item=" .. row.name .. "]  " .. row.translation
     item_label.tooltip = result_tooltip
     -- item counts
-    if player.controller_type == defines.controllers.character and connected_to_network then
+    if player.controller_type == defines.controllers.character and row.connected_to_network then
       children[i3 + 2].caption = (
         (row.inventory or 0)
         .. " / [color="
@@ -181,35 +198,26 @@ function gui.update_results_table(player, player_table, results, connected_to_ne
     else
       children[i3 + 2].caption = (row.inventory or 0)
     end
-    -- request / infinity filter
+    -- request filter
     local request_label = children[i3 + 3]
-    if player.controller_type == defines.controllers.editor then
-      local filter = row.infinity_filter
-      if filter then
-        request_label.caption = constants.infinity_filter_mode_to_symbol[filter.mode] .. " " .. filter.count
+    if row.logistic_requests_available then
+      local request = row.request
+      if request then
+        local max = request.max or math.max_uint
+        if max == math.max_uint then
+          max = constants.infinity_rep
+        end
+        request_label.caption = request.min .. " / " .. max
+        if request.is_temporary then
+          request_label.caption = "(T) " .. request_label.caption
+        end
+        request_label.style.font_color = constants.colors[row.request_color or "normal"]
       else
         request_label.caption = "--"
+        request_label.style.font_color = constants.colors.normal
       end
     else
-      if logistic_requests_available then
-        local request = row.request
-        if request then
-          local max = request.max
-          if max == math.max_uint then
-            max = constants.infinity_rep
-          end
-          request_label.caption = request.min .. " / " .. max
-          if request.is_temporary then
-            request_label.caption = "(T) " .. request_label.caption
-          end
-          request_label.style.font_color = constants.colors[row.request_color or "normal"]
-        else
-          request_label.caption = "--"
-          request_label.style.font_color = constants.colors.normal
-        end
-      else
-        request_label.caption = ""
-      end
+      request_label.caption = ""
     end
   end
   -- destroy extraneous rows
@@ -235,6 +243,7 @@ function gui.should_adjust_margin(player, logistic_requests_available)
   return player.controller_type == defines.controllers.god
     or (player.controller_type == defines.controllers.character and not logistic_requests_available)
 end
+
 function gui.build(player, player_table)
   -- Clean up orphaned elements
   local orphaned_dimmer = player.gui.screen.window_dimmer
@@ -260,6 +269,7 @@ function gui.build(player, player_table)
     {
       name = "window",
       type = "frame",
+      style = "fpal_window",
       direction = "vertical",
       visible = false,
       elem_mods = { auto_center = true },
@@ -269,92 +279,91 @@ function gui.build(player, player_table)
       },
       -- Titlebar
       {
-        name = "titlebar_flow",
-        type = "flow",
-        style = "flib_titlebar_flow",
-        drag_target = "window",
-        handler = handlers.recenter,
+        type = "frame",
+        style = "fpal_titlebar_frame",
         {
-          type = "empty-widget",
-          style = "flib_titlebar_drag_handle",
-          ignored_by_interaction = true,
+          name = "titlebar_flow",
+          type = "flow",
+          style = "fpal_titlebar_flow",
+          drag_target = "window",
+          handler = handlers.recenter,
+          -- Search field
+          {
+            name = "search_textfield",
+            type = "textfield",
+            style = "fpal_disablable_textfield",
+            style_mods = { width = 420 },
+            clear_and_focus_on_right_click = true,
+            lose_focus_on_confirm = true,
+            handler = {
+              [defines.events.on_gui_confirmed] = handlers.enter_result_selection,
+              [defines.events.on_gui_text_changed] = handlers.update_search_query,
+            },
+          },
+          {
+            type = "sprite-button",
+            style = "frame_action_button",
+            sprite = "utility/close",
+            hovered_sprite = "utility/close",
+            clicked_sprite = "utility/close",
+            style_mods = { height = 20, width = 20 },
+            handler = handlers.on_close,
+          },
         },
-        {
-          type = "sprite-button",
-          style = "frame_action_button",
-          sprite = "utility/close",
-          hovered_sprite = "utility/close",
-          clicked_sprite = "utility/close",
-          handler = handlers.on_close,
-        },
+      },
+      {
+        type = "line",
+        style = "fpal_titlebar_separator_line",
+        ignored_by_interaction = true,
       },
       -- Main content frame
       {
-        type = "frame",
-        style = "inside_shallow_frame_with_padding",
-        style_mods = { top_padding = -2 },
+        type = "flow",
+        -- style = "inside_shallow_frame_with_padding",
+        style_mods = { top_padding = -2, vertically_stretchable = true },
         direction = "vertical",
-        -- Search field
+        drag_target = "window",
+        -- Warning header
         {
-          name = "search_textfield",
-          type = "textfield",
-          style = "fpal_disablable_textfield",
-          style_mods = { width = 400, top_margin = 9 },
-          clear_and_focus_on_right_click = true,
-          lose_focus_on_confirm = true,
-          handler = {
-            [defines.events.on_gui_confirmed] = handlers.enter_result_selection,
-            [defines.events.on_gui_text_changed] = handlers.update_search_query,
-          },
-        },
-        -- Results container
-        {
+          name = "warning_subheader",
           type = "frame",
-          style = "deep_frame_in_shallow_frame",
-          style_mods = { top_margin = 10, height = 28 * 10 },
-          direction = "vertical",
-          -- Warning header
+          style = "negative_subheader_frame",
+          style_mods = { left_padding = 12, height = 28, horizontally_stretchable = true },
+          visible = false,
           {
-            name = "warning_subheader",
-            type = "frame",
-            style = "negative_subheader_frame",
-            style_mods = { left_padding = 12, height = 28, horizontally_stretchable = true },
-            visible = false,
-            {
-              type = "label",
-              style = "bold_label",
-              caption = {
-                "",
-                "[img=utility/warning]  ",
-                { "gui.fpal-not-connected-to-logistic-network" },
-              },
+            type = "label",
+            style = "bold_label",
+            caption = {
+              "",
+              "[img=utility/warning]  ",
+              { "gui.fpal-not-connected-to-logistic-network" },
             },
           },
-          -- Results scroll pane
+        },
+        -- Results scroll pane
+        {
+          name = "results_scroll_pane",
+          type = "scroll-pane",
+          style = "fpal_list_box_scroll_pane",
+          style_mods = { vertically_stretchable = true, bottom_padding = 2, maximal_height = 28 * 10 },
+          visible = true,
           {
-            name = "results_scroll_pane",
-            type = "scroll-pane",
-            style = "fpal_list_box_scroll_pane",
-            style_mods = { vertically_stretchable = true, bottom_padding = 2 },
-            visible = true,
+            name = "results_table",
+            type = "table",
+            style = "fpal_list_box_table",
+            column_count = 3,
+            -- Dummy elements for the first row
             {
-              name = "results_table",
-              type = "table",
-              style = "fpal_list_box_table",
-              column_count = 3,
-              -- Dummy elements for the first row
-              {
-                type = "empty-widget",
-                style = "fpal_empty_widget",
-              },
-              {
-                type = "empty-widget",
-                style = "fpal_empty_widget",
-              },
-              {
-                type = "empty-widget",
-                style = "fpal_empty_widget",
-              },
+              type = "empty-widget",
+              style = "fpal_empty_widget",
+            },
+            {
+              type = "empty-widget",
+              style = "fpal_empty_widget",
+            },
+            {
+              type = "empty-widget",
+              style = "fpal_empty_widget",
             },
           },
         },
@@ -400,7 +409,7 @@ function gui.open(player, player_table)
   gui_data.elems.search_textfield.select_all()
 
   -- update the table right away
-  gui.perform_search(player, player_table)
+  gui.perform_search(player, player_table, gui_data)
 
   storage.update_search_results[player.index] = true
 end
@@ -435,37 +444,11 @@ function gui.toggle(player, player_table, force_open)
   end
 end
 
-function gui.reopen_after_subwindow(e)
-  local player = game.get_player(e.player_index)
-  local player_table = storage.players[e.player_index]
-  local gui_data = player_table.guis.search
-
-  if gui_data then
-    local elems = gui_data.elems
-    local state = gui_data.state
-
-    elems.search_textfield.enabled = true
-    elems.window_dimmer.visible = false
-    state.subwindow_open = false
-
-    gui.perform_search(player, player_table)
-
-    if player_table.settings.auto_close and player_table.confirmed_tick == game.ticks_played then
-      gui.close(player, player_table)
-    else
-      player.opened = gui_data.elems.window
-    end
-
-    storage.update_search_results[player.index] = true
-  end
-end
-
 ---@param player LuaPlayer
 ---@param player_table table
 ---@param updated_query? boolean
 ---@param combined_contents? table
-function gui.perform_search(player, player_table, updated_query, combined_contents)
-  local gui_data = player_table.guis.search
+function gui.perform_search(player, player_table, gui_data, updated_query, combined_contents)
   local elems = gui_data.elems
   local state = gui_data.state
 
@@ -473,9 +456,11 @@ function gui.perform_search(player, player_table, updated_query, combined_conten
   local query = string.lower(state.query)
   local results_table = elems.results_table
 
-  -- Reset selection if query changed
-  if updated_query and #results_table.children > 3 then
-    results_table.children[state.selected_index * 3 + 1].style.font_color = constants.colors.normal
+  local results_count = #results_table.children / 3
+  if updated_query and results_count > 1 then
+    for i = 1, 3 do
+      results_table.children[state.selected_index * 3 + i].style.font_color = constants.colors.normal
+    end
     elems.results_scroll_pane.scroll_to_top()
     state.selected_index = 1
   end
@@ -484,18 +469,21 @@ function gui.perform_search(player, player_table, updated_query, combined_conten
   if #state.raw_query <= 1 then
     gui.clear_results(results_table)
     state.results = {}
+    elems.results_scroll_pane.style.height = 0
     return
   end
 
-  local results, connected_to_network, logistic_requests_available =
-    search.run(player, player_table, query, combined_contents)
-  gui.update_results_table(player, player_table, results, connected_to_network, logistic_requests_available)
+  local results = search.run(player, player_table, query, combined_contents)
+  gui.update_results_table(player, player_table, results)
 
+  -- TODO: figure out how to get generic warnings
   -- Update warning visibility
-  elems.warning_subheader.visible = gui.should_show_warning(player, connected_to_network, logistic_requests_available)
-
+  -- elems.warning_subheader.visible = gui.should_show_warning(player, connected_to_network, logistic_requests_available)
   -- Update table margin
-  results_table.style.right_margin = gui.should_adjust_margin(player, logistic_requests_available) and -15 or 0
+  -- results_table.style.right_margin = gui.should_adjust_margin(player, logistic_requests_available) and -15 or 0
+
+  local visible_rows = math.min(#results, constants.max_visible_rows)
+  elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6
 
   state.results = results
 end
@@ -523,9 +511,7 @@ function gui.select_item(player, player_table, modifiers, index)
       elems.window_dimmer.visible = true
       elems.window_dimmer.bring_to_front()
 
-      if player_controller == defines.controllers.editor then
-        infinity_filter_gui.open(player, player_table, result)
-      elseif player_controller == defines.controllers.character then
+      if player_controller == defines.controllers.character then
         logistic_request_gui.open(player, player_table, result)
       end
 
@@ -562,7 +548,7 @@ function gui.update_for_active_players()
     if gui_data then
       local state = gui_data.state
       if tick - state.last_search_update > 120 then
-        gui.perform_search(player, player_table)
+        gui.perform_search(player, player_table, gui_data)
       end
     end
   end
@@ -572,6 +558,7 @@ gui.events = {
   ["fpal-nav-up"] = h():with_param("offset", -1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-nav-down"] = h():with_param("offset", 1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-search"] = h():chain(handlers.toggle_search_gui),
+  [events.reopen_after_subwindow] = h():chain(handlers.reopen_after_subwindow),
   [defines.events.on_lua_shortcut] = h():with_condition("prototype_name", "fpal-search"):chain(handlers.toggle_search_gui),
 }
 

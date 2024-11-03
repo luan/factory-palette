@@ -27,13 +27,23 @@ function Handler.new()
   })
 end
 
-function Handler:chain(name, fn, deps)
-  if type(name) == "function" then
-    fn = name
-    name = "__anonymous__"
+---@param name_or_fn string|function
+---@param fn function?
+---@param deps string[]?
+function Handler:chain(name_or_fn, fn, deps)
+  if type(name_or_fn) == "function" then
+    fn = name_or_fn
+    name_or_fn = "__anonymous__"
   end
-  table.insert(self._chain, { name = name, fn = fn, deps = deps })
+  table.insert(self._chain, { name = name_or_fn, fn = fn, deps = deps })
   return self
+end
+
+function Handler.for_player()
+  return function()
+    local handler = Handler.new()
+    return handler:with_player()
+  end
 end
 
 function Handler.for_gui(gui_name)
@@ -69,9 +79,15 @@ function Handler:with_player()
     if not game then
       return _break
     end
+    if not e.player_index then
+      return _break
+    end
     local player = game.get_player(e.player_index)
+    if not player then
+      return _break
+    end
     local player_table = storage.players[e.player_index]
-    if player and player_table then
+    if player_table then
       args.player = player
       args.player_table = player_table
       return args
@@ -116,6 +132,7 @@ end
 local handlers = {
   fn = Handler.new,
   for_gui = Handler.for_gui,
+  for_player = Handler.for_player,
 }
 
 return handlers

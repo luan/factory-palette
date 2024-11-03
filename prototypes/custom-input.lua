@@ -45,11 +45,5 @@ data:extend({
     key_sequence = "CONTROL + E",
     alternative_key_sequence = "CONTROL + ENTER",
     order = "f",
-  },
-  {
-    type = "custom-input",
-    name = "fpal-cycle-infinity-filter-mode",
-    key_sequence = "SPACE",
-    order = "g",
-  },
+  }
 })

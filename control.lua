@@ -1,28 +1,30 @@
 local handler = require("__core__.lualib.event_handler")
 -- local dictionary = require("__flib__.dictionary")
 
--- local infinity_filter = require("scripts.infinity-filter")
 -- local logistic_request = require("scripts.logistic-request")
 -- local search = require("scripts.search")
 
--- local infinity_filter_gui = require("scripts.gui.infinity-filter")
 -- local logistic_request_gui = require("scripts.gui.logistic-request")
 -- local search_gui = require("scripts.gui.search")
 
 handler.add_libraries({
-    require("scripts.migrations"),
-    
-    require("__flib__.gui"),
-    require("__flib__.dictionary"),
+  require("scripts.migrations"),
 
-    require("scripts.global-data"),
-    require("scripts.gui"),
-    require("scripts.gui.search"),
-    require("scripts.player-data"),
+  require("__flib__.gui"),
+  require("__flib__.dictionary"),
+
+  require("scripts.logistic-request"),
+
+  require("scripts.global-data"),
+  require("scripts.gui"),
+  require("scripts.gui.search"),
+  require("scripts.player-data"),
+
+  require("scripts.sources.items"),
 })
 
 script.on_event("fpal-quick-trash-all", function(e)
-    game.reload_script()
+  game.reload_script()
 end)
 
 --[[
@@ -50,23 +52,6 @@ script.on_event({ "fpal-confirm", "fpal-shift-confirm", "fpal-control-confirm" }
             else
                 logistic_request_gui.set_request(player, player_table, is_shift)
             end
-        elseif opened.name == "fpal_infinity_filter_window" then
-            if is_control then
-                infinity_filter_gui.clear_filter(player, player_table)
-            else
-                infinity_filter_gui.set_filter(player, player_table, is_shift)
-            end
-        end
-    end
-end)
-
-script.on_event("fpal-cycle-infinity-filter-mode", function(e)
-    local player_table = storage.players[e.player_index]
-    local gui_data = player_table.guis.infinity_filter
-    if gui_data then
-        local state = gui_data.state
-        if state.visible then
-            infinity_filter_gui.cycle_filter_mode(gui_data)
         end
     end
 end)
@@ -80,8 +65,6 @@ script.on_event("fpal-quick-trash-all", function(e)
     local player_table = storage.players[e.player_index]
     if player.controller_type == defines.controllers.character and player.force.character_logistic_requests then
         logistic_request.quick_trash_all(player, player_table)
-    elseif player.controller_type == defines.controllers.editor then
-        infinity_filter.quick_trash_all(player, player_table)
     end
 end)
 

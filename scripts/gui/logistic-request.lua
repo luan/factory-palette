@@ -2,32 +2,35 @@ local flib_gui = require("__flib__.gui")
 local math = require("__flib__.math")
 
 local constants = require("constants")
+local events = require("events")
+local h = require("handlers").for_gui("request")
+
 local logistic_request = require("scripts.logistic-request")
 
 local logistic_request_gui = {}
 local handlers = {}
 
 -- Handler functions
-function handlers.on_close(player, player_table)
-  logistic_request_gui.close(player, player_table)
+function handlers.on_close(args, e)
+  script.raise_event(events.reopen_after_subwindow, e)
+  logistic_request_gui.close(args.player, args.player_table)
 end
 
-function handlers.recenter(player, player_table, e)
+function handlers.recenter(args, e)
   if e.button == defines.mouse_button_type.middle then
-    player_table.guis.request.elems.window.force_auto_center()
+    args.gui_data.elems.window.force_auto_center()
   end
 end
 
-function handlers.update_request(player, player_table, e)
-  local gui_data = player_table.guis.request
+function handlers.update_request(args, e)
+  local gui_data = args.gui_data
   local elems = gui_data.elems
   local state = gui_data.state
   local item_data = state.item_data
   local request_data = state.request
 
-  local bound = flib_gui.get_tags(e.element).bound
+  local bound = e.element.tags.bound
 
-  local elems = elems.logistic_setter[bound]
   local count
   if e.element.type == "textfield" then
     count = tonumber(e.element.text)
@@ -36,7 +39,7 @@ function handlers.update_request(player, player_table, e)
     else
       count = bound == "min" and 0 or math.max_uint
     end
-    elems.slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
+    elems[bound .. "_slider"].slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
   else
     count = e.element.slider_value
     local text
@@ -46,51 +49,52 @@ function handlers.update_request(player, player_table, e)
     else
       text = tostring(count)
     end
-    elems.textfield.text = text
+    elems[bound .. "_textfield"].text = text
   end
   request_data[bound] = count
+  request_data.max = request_data.max or math.max_uint
 
   -- sync border
   if bound == "min" and count > request_data.max then
     request_data.max = count
-    elems.logistic_setter.max.textfield.text = tostring(count)
-    elems.logistic_setter.max.slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
+    elems.max_textfield.text = tostring(count)
+    elems.max_slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
   elseif bound == "max" and count < request_data.min then
     request_data.min = count
-    elems.logistic_setter.min.textfield.text = tostring(count)
-    elems.logistic_setter.min.slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
+    elems.min_textfield.text = tostring(count)
+    elems.min_slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
   end
 
   -- switch textfield
   if e.element.type == "textfield" then
     if bound == "min" then
-      elems.logistic_setter.max.textfield.select_all()
-      elems.logistic_setter.max.textfield.focus()
+      elems.max_textfield.select_all()
+      elems.max_textfield.focus()
     else
-      elems.logistic_setter.min.textfield.select_all()
-      elems.logistic_setter.min.textfield.focus()
+      elems.min_textfield.select_all()
+      elems.min_textfield.focus()
     end
   end
 end
 
-function handlers.clear_request(player, player_table)
-  local state = player_table.guis.request.state
-  logistic_request.clear(player, player_table, state.item_data.name)
+function handlers.clear_request(args, e)
+  local state = args.gui_data.state
+  logistic_request.clear(args.player, args.player_table, state.item_data.name)
   -- invoke `on_gui_closed` so the search GUI will be refocused
-  player.opened = nil
+  args.player.opened = nil
 end
 
-function handlers.set_request(player, player_table, e)
+function handlers.set_request(args, e)
   if not e.element or not e.element.tags then
     return
   end
   -- HACK: Makes it easy for the search GUI to tell that this was confirmed
-  player_table.confirmed_tick = game.ticks_played
+  args.player_table.confirmed_tick = game.ticks_played
   local temporary = e.element.tags.temporary
-  logistic_request_gui.set_request(player, player_table, temporary, true)
+  logistic_request_gui.set_request(args.player, args.player_table, temporary, true)
   -- invoke `on_gui_closed` if the above function did not
   if not temporary then
-    player.opened = nil
+    args.player.opened = nil
   end
 end
 
@@ -102,13 +106,14 @@ function logistic_request_gui.build(player, player_table)
   logistic_request_gui.destroy(player_table)
   local resolution = player.display_resolution
   local scale = player.display_scale
-  local focus_frame_size = { resolution.width / scale, resolution.height / scale }
+  local fpal_request_focus_frame_size = { resolution.width / scale, resolution.height / scale }
 
   local elems = flib_gui.add(player.gui.screen, {
     {
       type = "frame",
       style = "invisible_frame",
-      style_mods = { size = focus_frame_size },
+      name = "fpal_request_focus_frame",
+      style_mods = { size = fpal_request_focus_frame_size },
       visible = false,
       elem_mods = { auto_center = true },
       handler = {
@@ -134,6 +139,7 @@ function logistic_request_gui.build(player, player_table)
         {
           type = "label",
           style = "frame_title",
+          name = "item_label",
           caption = { "gui.fpal-edit-logistic-request" },
           ignored_by_interaction = true,
         },
@@ -179,6 +185,7 @@ function logistic_request_gui.build(player, player_table)
             clear_and_focus_on_right_click = true,
             text = "0",
             tags = { bound = "min" },
+            name = "min_textfield",
             handler = {
               [defines.events.on_gui_confirmed] = handlers.update_request,
             },
@@ -197,6 +204,7 @@ function logistic_request_gui.build(player, player_table)
               discrete_slider = true,
               discrete_values = true,
               tags = { bound = "max" },
+              name = "max_slider",
               handler = {
                 [defines.events.on_gui_value_changed] = handlers.update_request,
               },
@@ -212,6 +220,7 @@ function logistic_request_gui.build(player, player_table)
               discrete_slider = true,
               discrete_values = true,
               tags = { bound = "min" },
+              name = "min_slider",
               handler = {
                 [defines.events.on_gui_value_changed] = handlers.update_request,
               },
@@ -224,6 +233,7 @@ function logistic_request_gui.build(player, player_table)
             clear_and_focus_on_right_click = true,
             text = constants.infinity_rep,
             tags = { bound = "max" },
+            name = "max_textfield",
             handler = {
               [defines.events.on_gui_confirmed] = handlers.update_request,
             },
@@ -304,40 +314,40 @@ function logistic_request_gui.open(player, player_table, item_data)
   elems.item_label.caption = "[item=" .. item_data.name .. "]  " .. item_data.translation
 
   -- update logistic setter
-  local logistic_setter = elems.logistic_setter
   for _, type in ipairs({ "min", "max" }) do
-    local elems = logistic_setter[type]
-    local count = request_data[type]
-    elems.textfield.enabled = true
+    local count = request_data[type] or 0
+    local textfield = elems[type .. "_textfield"]
+    textfield.enabled = true
     if count >= math.max_uint then
-      elems.textfield.text = constants.infinity_rep
+      textfield.text = constants.infinity_rep
     else
-      elems.textfield.text = tostring(count)
+      textfield.text = tostring(count)
     end
-    elems.slider.enabled = true
-    elems.slider.set_slider_value_step(1)
-    elems.slider.set_slider_minimum_maximum(0, stack_size * 10)
-    elems.slider.set_slider_value_step(stack_size)
-    elems.slider.slider_value = math.round(count / stack_size) * stack_size
+    local slider = elems[type .. "_slider"]
+    slider.enabled = true
+    slider.set_slider_value_step(1)
+    slider.set_slider_minimum_maximum(0, stack_size * 10)
+    slider.set_slider_value_step(stack_size)
+    slider.slider_value = math.round(count / stack_size) * stack_size
   end
-  elems.logistic_setter.min.textfield.select_all()
-  elems.logistic_setter.min.textfield.focus()
+  elems.min_textfield.select_all()
+  elems.min_textfield.focus()
 
   -- update window
-  elems.focus_frame.visible = true
-  elems.focus_frame.bring_to_front()
-  elems.window.visible = true
-  elems.window.bring_to_front()
+  elems.fpal_request_focus_frame.visible = true
+  elems.fpal_request_focus_frame.bring_to_front()
+  elems.fpal_request_window.visible = true
+  elems.fpal_request_window.bring_to_front()
 
   -- set opened
-  player.opened = elems.window
+  player.opened = elems.fpal_request_window
 end
 
 function logistic_request_gui.close(player, player_table)
   local gui_data = player_table.guis.request
   gui_data.state.visible = false
-  gui_data.elems.focus_frame.visible = false
-  gui_data.elems.window.visible = false
+  gui_data.elems.fpal_request_focus_frame.visible = false
+  gui_data.elems.fpal_request_window.visible = false
   if not player.opened then
     player.opened = player_table.guis.search.elems.window
   end
@@ -349,7 +359,7 @@ function logistic_request_gui.update_focus_frame_size(player, player_table)
     local resolution = player.display_resolution
     local scale = player.display_scale
     local size = { resolution.width / scale, resolution.height / scale }
-    gui_data.elems.focus_frame.style.size = size
+    gui_data.elems.fpal_request_focus_frame.style.size = size
   end
 end
 
@@ -361,10 +371,6 @@ function logistic_request_gui.set_request(player, player_table, is_temporary, sk
   local gui_data = player_table.guis.request
   local elems = gui_data.elems
   local state = gui_data.state
-
-  -- get the latest values from each textfield
-  logistic_request_gui.update_request(elems, state, elems.logistic_setter.min.textfield)
-  logistic_request_gui.update_request(elems, state, elems.logistic_setter.max.textfield)
 
   -- set the request
   logistic_request.set(player, player_table, state.item_data.name, state.request, is_temporary)
@@ -380,7 +386,7 @@ flib_gui.add_handlers(handlers, function(e, handler)
   local player = game.get_player(e.player_index)
   local player_table = storage.players[e.player_index]
   if player and player_table then
-    handler(player, player_table, e)
+    h():chain(handler)(e)
   end
 end, "logistic_request")
 
