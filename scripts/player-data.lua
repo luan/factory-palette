@@ -13,6 +13,17 @@ function player_data.on_init()
   end
 end
 
+function player_data.on_runtime_mod_setting_changed(e)
+  if string.sub(e.setting, 1, 4) == "fpal-" and e.setting_type == "runtime-per-user" then
+    local player = game.get_player(e.player_index)
+    if not player then
+      return
+    end
+    local player_table = storage.players[e.player_index]
+    player_data.update_settings(player, player_table)
+  end
+end
+
 function player_data.on_configuration_changed()
   for i in pairs(game.players) do
     player_data.refresh(game.get_player(i), storage.players[i])

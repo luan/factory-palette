@@ -168,6 +168,7 @@ end
 
 logistic_request.events = {
   [defines.events.on_entity_logistic_slot_changed] = h():chain(logistic_request.update),
+  ["fpal-quick-trash-all"] = h():chain(logistic_request.quick_trash_all),
 }
 
 return logistic_request

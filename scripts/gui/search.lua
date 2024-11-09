@@ -598,4 +598,10 @@ flib_gui.add_handlers(handlers, function(e, handler)
   h():chain(handler)(e)
 end, "search")
 
+function gui.on_tick()
+  if next(storage.update_search_results) then
+    gui.update_for_active_players()
+  end
+end
+
 return gui
