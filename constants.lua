@@ -13,6 +13,7 @@ constants.colors = {
   normal = { 255, 255, 255 },
   outbound = { 69, 255, 69 },
   unsatisfied = { 255, 69, 69 },
+  muted = { 100, 100, 100 },
 }
 
 constants.ignored_item_types = {

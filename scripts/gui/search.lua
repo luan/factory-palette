@@ -23,7 +23,7 @@ local gui = {}
 local handlers = {}
 
 local tbl = {
-  columns = 3,
+  columns = 4,
 }
 
 function tbl.count(t)
@@ -202,6 +202,7 @@ function gui.update_results_table(player, player_table, results)
         },
         { type = "label" },
         { type = "label" },
+        { type = "label" },
       })
       -- update our copy of the table
       children = results_table.children
@@ -242,11 +243,13 @@ function gui.update_results_table(player, player_table, results)
         request_label.style.font_color = constants.colors[row.request_color or "normal"]
       else
         request_label.caption = "--"
-        request_label.style.font_color = constants.colors.normal
       end
     else
       request_label.caption = ""
     end
+
+    result[4].caption = "[font=default-bold]" .. row.source .. "[/font]"
+    result[4].style.font_color = constants.colors.muted
   end
   -- destroy extraneous rows
   for j = tbl.count(results_table), i + 1, -1 do
@@ -377,7 +380,6 @@ function gui.build(player, player_table)
             style_mods = { top_margin = 4 },
             style = "fpal_list_box_table",
             column_count = tbl.columns,
-            -- Dummy elements for the first row
           },
         },
       },

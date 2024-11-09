@@ -131,6 +131,7 @@ styles.fpal_list_box_table = {
     { column = 1, alignment = "left" },
     { column = 2, alignment = "center" },
     { column = 3, alignment = "center" },
+    { column = 4, alignment = "right" },
   },
 }
 
