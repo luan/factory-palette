@@ -89,7 +89,7 @@ styles.fpal_clickable_item_label = {
 
 styles.fpal_empty_widget = {
   type = "empty_widget_style",
-  horizontally_stretchable = "on",
+  horizontally_stretchable = "auto",
   graphical_set = no_background,
 }
 

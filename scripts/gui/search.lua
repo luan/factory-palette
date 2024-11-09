@@ -22,6 +22,37 @@ local logistic_request_gui = require("scripts.gui.logistic-request")
 local gui = {}
 local handlers = {}
 
+local tbl = {
+  columns = 3,
+}
+
+function tbl.count(t)
+  return #t.children / tbl.columns
+end
+
+function tbl.get_row(t, index)
+  if #t.children < index * tbl.columns then
+    return nil
+  end
+  local row = {}
+  for i = 1, tbl.columns do
+    table.insert(row, t.children[i + (index - 1) * tbl.columns])
+  end
+  return row
+end
+
+function tbl.set_row(t, index, row)
+  for i = 1, tbl.columns do
+    t.children[i] = row[i + (index - 1) * tbl.columns]
+  end
+end
+
+function tbl.delete_row(t, index)
+  for i = tbl.columns, 1, -1 do
+    t.children[i + (index - 1) * tbl.columns].destroy()
+  end
+end
+
 -- Handler functions
 function handlers.on_close(args)
   gui.close(args.player, args.player_table)
@@ -54,11 +85,13 @@ function handlers.update_selected_index(args)
   local state = args.gui_data.state
   local results_table = elems.results_table
   local selected_index = state.selected_index
-  results_table.children[selected_index * 3 + 1].style.font_color = constants.colors.normal
-  local new_selected_index = math.clamp(selected_index + offset, 1, #results_table.children / 3 - 1)
+  local row = tbl.get_row(results_table, selected_index)
+  row[1].style.font_color = constants.colors.normal
+  local new_selected_index = math.clamp(selected_index + offset, 1, tbl.count(results_table))
   state.selected_index = new_selected_index
-  results_table.children[new_selected_index * 3 + 1].style.font_color = constants.colors.hovered
-  elems.results_scroll_pane.scroll_to_element(results_table.children[new_selected_index * 3 + 1], "top-third")
+  row = tbl.get_row(results_table, new_selected_index)
+  row[1].style.font_color = constants.colors.hovered
+  elems.results_scroll_pane.scroll_to_element(row[1], "top-third")
 end
 
 function handlers.enter_result_selection(args)
@@ -66,16 +99,16 @@ function handlers.enter_result_selection(args)
   local gui_data = player_table.guis.search
   local elems = gui_data.elems
   local state = gui_data.state
-  if #elems.results_table.children == 3 then
+  if tbl.count(elems.results_table) == 0 then
     elems.search_textfield.focus()
     return
   end
 
   elems.results_scroll_pane.focus()
-  if state.selected_index > ((#elems.results_table.children - 3) / 3) then
+  if state.selected_index > tbl.count(elems.results_table) then
     state.selected_index = 1
   end
-  elems.results_table.children[state.selected_index * 3 + 1].style.font_color = constants.colors.hovered
+  tbl.get_row(elems.results_table, state.selected_index)[1].style.font_color = constants.colors.hovered
 end
 
 function handlers.update_search_query(args, e)
@@ -128,15 +161,9 @@ function handlers.reopen_after_subwindow(args)
 
   storage.update_search_results[player.index] = true
 end
-
 ---@param results_table LuaGuiElement
 function gui.clear_results(results_table)
-  -- clear results
   results_table.clear()
-  -- add new dummy elements
-  for _ = 1, 3 do
-    results_table.add({ type = "empty-widget", style = "fpal_empty_widget" })
-  end
 end
 
 ---@param player LuaPlayer
@@ -160,10 +187,10 @@ function gui.update_results_table(player, player_table, results)
   local i = 0
   for _, row in ipairs(results) do
     i = i + 1
-    local i3 = i * 3
 
+    local result = tbl.get_row(results_table, i)
     -- build row if nonexistent
-    if not results_table.children[i3 + 1] then
+    if not result then
       flib_gui.add(results_table, {
         {
           type = "label",
@@ -178,16 +205,17 @@ function gui.update_results_table(player, player_table, results)
       })
       -- update our copy of the table
       children = results_table.children
+      result = tbl.get_row(results_table, i)
     end
 
     -- item label
-    local item_label = children[i3 + 1]
+    local item_label = result[1]
     local hidden_abbrev = row.hidden and "[font=default-semibold](H)[/font]  " or ""
     item_label.caption = hidden_abbrev .. (row.caption or row.name)
     item_label.tooltip = result_tooltip
     -- item counts
     if player.controller_type == defines.controllers.character and row.connected_to_network then
-      children[i3 + 2].caption = (
+      result[2].caption = (
         (row.inventory or 0)
         .. " / [color="
         .. constants.colors.logistic_str
@@ -196,10 +224,10 @@ function gui.update_results_table(player, player_table, results)
         .. "[/color]"
       )
     else
-      children[i3 + 2].caption = (row.inventory or 0)
+      result[2].caption = (row.inventory or 0)
     end
     -- request filter
-    local request_label = children[i3 + 3]
+    local request_label = result[3]
     if row.logistic_requests_available then
       local request = row.request
       if request then
@@ -221,8 +249,8 @@ function gui.update_results_table(player, player_table, results)
     end
   end
   -- destroy extraneous rows
-  for j = #results_table.children, ((i + 1) * 3) + 1, -1 do
-    results_table.children[j].destroy()
+  for j = tbl.count(results_table), i + 1, -1 do
+    tbl.delete_row(results_table, j)
   end
 end
 
@@ -346,21 +374,10 @@ function gui.build(player, player_table)
           {
             name = "results_table",
             type = "table",
+            style_mods = { top_margin = 4 },
             style = "fpal_list_box_table",
-            column_count = 3,
+            column_count = tbl.columns,
             -- Dummy elements for the first row
-            {
-              type = "empty-widget",
-              style = "fpal_empty_widget",
-            },
-            {
-              type = "empty-widget",
-              style = "fpal_empty_widget",
-            },
-            {
-              type = "empty-widget",
-              style = "fpal_empty_widget",
-            },
           },
         },
       },
@@ -452,11 +469,10 @@ function gui.perform_search(player, player_table, gui_data, updated_query, combi
   local query = string.lower(state.query)
   local results_table = elems.results_table
 
-  local results_count = #results_table.children / 3
-  if updated_query and results_count > 1 then
-    for i = 1, 3 do
-      results_table.children[state.selected_index * 3 + i].style.font_color = constants.colors.normal
-    end
+  local results_count = tbl.count(results_table)
+  if updated_query and results_count > 0 then
+    local row = tbl.get_row(results_table, state.selected_index)
+    row[1].style.font_color = constants.colors.normal
     elems.results_scroll_pane.scroll_to_top()
     state.selected_index = 1
   end
