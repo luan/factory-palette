@@ -183,15 +183,6 @@ function gui.update_results_table(player, player_table, results)
   local results_table = elems.results_table
   local children = results_table.children
 
-  local result_tooltip = {
-    "",
-    { "gui.fpal-result-click-tooltip" },
-    "\n",
-    { "gui.fpal-shift-click" },
-    " ",
-    "gui.fpal-edit-logistic-request",
-  }
-
   local i = 0
   for _, row in ipairs(results) do
     i = i + 1
@@ -225,7 +216,7 @@ function gui.update_results_table(player, player_table, results)
     local hidden_abbrev = row.hidden and "[font=default-semibold](H)[/font]  " or ""
     for j = 1, #row.caption do
       result[j].caption = hidden_abbrev .. row.caption[j]
-      result[j].tooltip = result_tooltip
+      result[j].tooltip = row.tooltip
     end
 
     result[4].caption = "[font=default-small-bold]" .. row.source .. "[/font]"

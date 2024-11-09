@@ -4,6 +4,19 @@ local constants = require("constants")
 
 local search = require("scripts.search")
 
+local function tooltip(result)
+  return {
+    "",
+    { "gui.fpal-click-tooltip" },
+    " ",
+    { "gui.fpal-set-in-cursor" },
+    "\n",
+    { "gui.fpal-shift-click-tooltip" },
+    " ",
+    { "gui.fpal-set-logistic-request" },
+  }
+end
+
 local function get_combined_inventory_contents(player, main_inventory)
   -- main inventory contents
   local combined_contents = {}
@@ -103,6 +116,7 @@ local function run(player, player_table, query, combined_contents)
           logistic_requests_available = logistic_requests_available,
           logistic = logistic_count,
           translation = translation,
+          tooltip = tooltip(result),
         }
 
         if controller_type == defines.controllers.character then

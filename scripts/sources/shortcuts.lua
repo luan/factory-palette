@@ -4,6 +4,15 @@ local constants = require("constants")
 
 local search = require("scripts.search")
 
+local function tooltip(result)
+  return {
+    "",
+    { "gui.fpal-click-tooltip" },
+    " ",
+    { "gui.fpal-confirm-tooltip" },
+  }
+end
+
 local function run(player, player_table, query, combined_contents)
   local i = 0
   local translations = dictionary.get(player.index, "shortcut")
@@ -15,6 +24,7 @@ local function run(player, player_table, query, combined_contents)
         caption = { "[shortcut=" .. name .. "]  " .. translation },
         translation = translation,
         remote = { "Shortcuts-ick", "on_lua_shortcut", { player_index = player.index, prototype_name = name } },
+        tooltip = tooltip(result),
       }
 
       i = i + 1
