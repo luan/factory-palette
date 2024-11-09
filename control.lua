@@ -30,33 +30,6 @@ end)
 
 --[[
 -- Custom input
-script.on_event({ "fpal-confirm", "fpal-shift-confirm", "fpal-control-confirm" }, function(e)
-    local player = game.get_player(e.player_index)
-    if not player then
-        return
-    end
-    local player_table = storage.players[e.player_index]
-
-    -- HACK: This makes it easy to check if we should close the search GUI or not
-    player_table.confirmed_tick = game.ticks_played
-
-    local is_shift = e.input_name == "fpal-shift-confirm"
-    local is_control = e.input_name == "fpal-control-confirm"
-
-    local opened = player.opened
-    if opened and player.opened_gui_type == defines.gui_type.custom then
-        if opened.name == "fpal_search_window" then
-            search_gui.select_item(player, player_table, { shift = is_shift, control = is_control })
-        elseif opened.name == "fpal_request_window" then
-            if is_control then
-                logistic_request_gui.clear_request(player, player_table)
-            else
-                logistic_request_gui.set_request(player, player_table, is_shift)
-            end
-        end
-    end
-end)
-
 -- TODO: split into the modules
 script.on_event("fpal-quick-trash-all", function(e)
     local player = game.get_player(e.player_index)

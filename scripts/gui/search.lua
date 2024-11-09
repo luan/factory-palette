@@ -59,11 +59,19 @@ function handlers.on_close(args)
 end
 
 function handlers.select_item(args, e)
-  local player, player_table = args.player, args.player_table
-  if not (e.element and e.element.tags and e.element.tags.index) then
-    return
+  if e.shift then
+    args.shift = true
   end
-  gui.select_item(player, player_table, { shift = e.shift, control = e.control }, e.element.tags.index)
+  if e.control then
+    args.control = true
+  end
+  local player, player_table = args.player, args.player_table
+  local index = nil
+  if e.element and e.element.tags and e.element.tags.index then
+    index = e.element.tags.index
+  end
+  player_table.confirmed_tick = game.ticks_played
+  gui.select_item(player, player_table, args, index)
 end
 
 function handlers.recenter(args, e)
@@ -248,7 +256,7 @@ function gui.update_results_table(player, player_table, results)
       request_label.caption = ""
     end
 
-    result[4].caption = "[font=default-bold]" .. row.source .. "[/font]"
+    result[4].caption = "[font=default-small-bold]" .. row.source .. "[/font]"
     result[4].style.font_color = constants.colors.muted
   end
   -- destroy extraneous rows
@@ -293,7 +301,7 @@ function gui.build(player, player_table)
       name = "window_dimmer",
       type = "frame",
       style = "fpal_window_dimmer",
-      style_mods = { size = { 448, 390 } },
+      style_mods = { size = { 478, 390 } },
       visible = false,
     },
     -- Main window
@@ -498,6 +506,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query, combi
 
   local visible_rows = math.min(#results, constants.max_visible_rows)
   elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6
+  elems.window_dimmer.style.height = constants.row_height * visible_rows + 6 + 64
 
   state.results = results
 end
@@ -578,7 +587,9 @@ gui.events = {
   ["fpal-nav-up"] = h():with_param("offset", -1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-nav-down"] = h():with_param("offset", 1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-search"] = h():chain(handlers.toggle_search_gui),
-  ["fpal-confirm"] = h():chain(handlers.select_item),
+  ["fpal-control-confirm"] = h():with_param("control", true):with_gui_check():chain(handlers.select_item),
+  ["fpal-shift-confirm"] = h():with_param("shift", true):with_gui_check():chain(handlers.select_item),
+  ["fpal-confirm"] = h():with_param("confirm", true):with_gui_check():chain(handlers.select_item),
   [events.reopen_after_subwindow] = h():chain(handlers.reopen_after_subwindow),
   [defines.events.on_lua_shortcut] = h():with_condition("prototype_name", "fpal-search"):chain(handlers.toggle_search_gui),
 }

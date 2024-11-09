@@ -21,7 +21,7 @@ function gui.init(args)
   player_table.flags.can_open_gui = true
   player_table.flags.show_message_after_translation = false
   -- create GUIs
-  -- logistic_request_gui.build(player, player_table)
+  logistic_request_gui.build(player, player_table)
   search_gui.build(player, player_table)
   -- enable shortcut
   player.set_shortcut_available("fpal-search", true)

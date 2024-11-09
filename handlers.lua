@@ -103,7 +103,7 @@ function Handler:with_gui_check()
       return _break
     end
 
-    if args.gui_data.state.visible then
+    if args.gui_data.state.visible and not args.gui_data.state.subwindow_open then
       return args
     end
     return _break
