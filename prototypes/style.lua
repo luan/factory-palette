@@ -18,7 +18,7 @@ styles.fpal_window_dimmer = {
   },
 }
 
-styles.fpal_window = {
+styles.fpal_window_modern = {
   type = "frame_style",
   graphical_set = {
     base = {
@@ -68,6 +68,7 @@ styles.fpal_titlebar_frame = {
 styles.fpal_titlebar_flow = {
   type = "horizontal_flow_style",
   horizontal_spacing = 8,
+  vertical_align = "center",
 }
 
 -- LABEL STYLES
@@ -135,7 +136,7 @@ styles.fpal_list_box_table = {
 
 -- TEXTFIELD STYLES
 
-styles.fpal_disablable_textfield = {
+styles.fpal_disablable_textfield_modern = {
   type = "textbox_style",
   disabled_font_color = { 180, 150, 150 },
   default_font_color = { 255, 250, 250 },
@@ -149,11 +150,40 @@ styles.fpal_disablable_textfield = {
   default_background = no_background,
 }
 
+styles.fpal_disablable_textfield_classic = {
+  type = "textbox_style",
+  disabled_background = styles.textbox.default_background,
+  disabled_font_color = button_default_font_color,
+  bottom_margin = 8,
+}
+
+-- BUTTON STYLES
+
+styles.fpal_close_button_modern = {
+  type = "button_style",
+  parent = "frame_action_button",
+  height = 20,
+  width = 20,
+}
+
+styles.fpal_close_button_classic = {
+  type = "button_style",
+  parent = "fpal_close_button_modern",
+  top_margin = 4,
+  left_margin = 4,
+}
+
 -- LINE STYLES
 
-styles.fpal_titlebar_separator_line = {
+styles.fpal_titlebar_separator_line_modern = {
   type = "line_style",
   top_margin = -6,
   left_margin = -17,
   right_margin = -17,
+}
+
+styles.fpal_titlebar_separator_line_classic = {
+  type = "line_style",
+  parent = "fpal_titlebar_separator_line_modern",
+  top_margin = -2,
 }

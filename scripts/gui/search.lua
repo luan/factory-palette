@@ -183,7 +183,7 @@ function gui.update_results_table(player, player_table, results)
     -- item label
     local item_label = children[i3 + 1]
     local hidden_abbrev = row.hidden and "[font=default-semibold](H)[/font]  " or ""
-    item_label.caption = hidden_abbrev .. "[item=" .. row.name .. "]  " .. row.translation
+    item_label.caption = hidden_abbrev .. (row.caption or row.name)
     item_label.tooltip = result_tooltip
     -- item counts
     if player.controller_type == defines.controllers.character and row.connected_to_network then
@@ -269,7 +269,7 @@ function gui.build(player, player_table)
     {
       name = "window",
       type = "frame",
-      style = "fpal_window",
+      -- style = "fpal_window_modern",
       direction = "vertical",
       visible = false,
       elem_mods = { auto_center = true },
@@ -279,8 +279,8 @@ function gui.build(player, player_table)
       },
       -- Titlebar
       {
-        type = "frame",
-        style = "fpal_titlebar_frame",
+        type = "flow",
+        -- style = "fpal_titlebar_frame",
         {
           name = "titlebar_flow",
           type = "flow",
@@ -291,8 +291,8 @@ function gui.build(player, player_table)
           {
             name = "search_textfield",
             type = "textfield",
-            style = "fpal_disablable_textfield",
-            style_mods = { width = 420 },
+            style = "fpal_disablable_textfield_classic",
+            style_mods = { width = 420, bottom_margin = 8 },
             clear_and_focus_on_right_click = true,
             lose_focus_on_confirm = true,
             handler = {
@@ -302,18 +302,17 @@ function gui.build(player, player_table)
           },
           {
             type = "sprite-button",
-            style = "frame_action_button",
+            style = "fpal_close_button_classic",
             sprite = "utility/close",
             hovered_sprite = "utility/close",
             clicked_sprite = "utility/close",
-            style_mods = { height = 20, width = 20 },
             handler = handlers.on_close,
           },
         },
       },
       {
         type = "line",
-        style = "fpal_titlebar_separator_line",
+        style = "fpal_titlebar_separator_line_classic",
         ignored_by_interaction = true,
       },
       -- Main content frame
@@ -503,6 +502,12 @@ function gui.select_item(player, player_table, modifiers, index)
   if not result then
     return
   end
+
+  if type(result.remote) == "table" then
+    remote.call(result.remote[1], result.remote[2], result.remote[3])
+    return
+  end
+
   if modifiers.shift then
     local player_controller = player.controller_type
     if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
@@ -558,6 +563,7 @@ gui.events = {
   ["fpal-nav-up"] = h():with_param("offset", -1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-nav-down"] = h():with_param("offset", 1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-search"] = h():chain(handlers.toggle_search_gui),
+  ["fpal-confirm"] = h():chain(handlers.select_item),
   [events.reopen_after_subwindow] = h():chain(handlers.reopen_after_subwindow),
   [defines.events.on_lua_shortcut] = h():with_condition("prototype_name", "fpal-search"):chain(handlers.toggle_search_gui),
 }

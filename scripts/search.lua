@@ -8,8 +8,11 @@ local search = {
 
 function search.run(player, player_table, query, combined_contents)
   local all_results = {}
-  for _, source in pairs(search.sources) do
+  for source_name, source in pairs(search.sources) do
     local source_results = source(player, player_table, query, combined_contents)
+    for _, result in pairs(source_results) do
+      result.source = source_name
+    end
     all_results = flib_table.array_merge({ all_results, source_results })
   end
   return all_results

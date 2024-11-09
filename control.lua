@@ -21,6 +21,7 @@ handler.add_libraries({
   require("scripts.player-data"),
 
   require("scripts.sources.items"),
+  require("scripts.sources.shortcuts"),
 })
 
 script.on_event("fpal-quick-trash-all", function(e)

@@ -4,9 +4,7 @@ local constants = require("constants")
 
 local search = require("scripts.search")
 
-local inventory = {}
-
-function inventory.get_combined_inventory_contents(player, main_inventory)
+local function get_combined_inventory_contents(player, main_inventory)
   -- main inventory contents
   local combined_contents = {}
   for _, item in ipairs(main_inventory.get_contents()) do
@@ -35,7 +33,7 @@ function inventory.get_combined_inventory_contents(player, main_inventory)
   return combined_contents, true
 end
 
-function run(player, player_table, query, combined_contents)
+local function run(player, player_table, query, combined_contents)
   -- don't bother if they don't have a main inventory
   local main_inventory = player.get_main_inventory()
   if not main_inventory or not main_inventory.valid then
@@ -59,7 +57,7 @@ function run(player, player_table, query, combined_contents)
 
   -- get contents of all player inventories and cursor stack
   -- in some cases, this is passed in externally to save performance
-  combined_contents = combined_contents or inventory.get_combined_inventory_contents(player, main_inventory)
+  combined_contents = combined_contents or get_combined_inventory_contents(player, main_inventory)
   -- don't bother doing anything if they don't have an inventory
   local contents = {
     inbound = {},
@@ -98,12 +96,13 @@ function run(player, player_table, query, combined_contents)
         local logistic_count = contents.logistic[name]
 
         local result = {
+          name = name,
+          caption = "[item=" .. name .. "]  " .. translation,
           hidden = hidden,
           inventory = inventory_count,
           connected_to_network = connected_to_network,
           logistic_requests_available = logistic_requests_available,
           logistic = logistic_count and math.max(logistic_count, 0) or nil,
-          name = name,
           translation = translation,
         }
 
@@ -141,9 +140,9 @@ end
 
 return {
   on_init = function()
-    search.add_source("inventory", run)
+  search.add_source("items", run)
   end,
   on_load = function()
-    search.add_source("inventory", run)
+  search.add_source("items", run)
   end,
 }
