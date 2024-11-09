@@ -92,17 +92,16 @@ local function run(player, player_table, query, combined_contents)
     if string.find(string.lower(translation), query) then
       local hidden = false -- item_prototypes[name].has_flag("hidden")
       if show_hidden or not hidden then
-        local inventory_count = contents.inventory[name]
-        local logistic_count = contents.logistic[name]
+        local inventory_count = contents.inventory[name] or 0
+        local logistic_count = contents.logistic[name] or 0
 
         local result = {
           name = name,
-          caption = "[item=" .. name .. "]  " .. translation,
           hidden = hidden,
           inventory = inventory_count,
           connected_to_network = connected_to_network,
           logistic_requests_available = logistic_requests_available,
-          logistic = logistic_count and math.max(logistic_count, 0) or nil,
+          logistic = logistic_count,
           translation = translation,
         }
 
@@ -125,6 +124,42 @@ local function run(player, player_table, query, combined_contents)
           end
           result.request_color = color
         end
+
+        local inventory_caption = inventory_count
+        if player.controller_type == defines.controllers.character and connected_to_network then
+          inventory_caption = (
+            inventory_count
+            .. " / [color="
+            .. constants.colors.logistic_str
+            .. "]"
+            .. logistic_count
+            .. "[/color]"
+          )
+        else
+          inventory_caption = inventory_count
+        end
+
+        local request_label = ""
+        if logistic_requests_available then
+          local request = requests_by_name[name]
+          if request then
+            local max = request.max or math.max_uint
+            if max == math.max_uint then
+              max = constants.infinity_rep
+            end
+            request_label = request.min .. " / " .. max
+            if request.is_temporary then
+              request_label = "(T) " .. request_label
+            end
+            request_label.style.font_color = constants.colors[result.request_color or "normal"]
+          else
+            request_label = "--"
+          end
+        else
+          request_label = ""
+        end
+
+        result.caption = { "[item=" .. name .. "]  " .. translation, inventory_caption, request_label }
 
         i = i + 1
         results[i] = result

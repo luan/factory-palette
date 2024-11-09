@@ -217,43 +217,15 @@ function gui.update_results_table(player, player_table, results)
       result = tbl.get_row(results_table, i)
     end
 
-    -- item label
-    local item_label = result[1]
-    local hidden_abbrev = row.hidden and "[font=default-semibold](H)[/font]  " or ""
-    item_label.caption = hidden_abbrev .. (row.caption or row.name)
-    item_label.tooltip = result_tooltip
-    -- item counts
-    if player.controller_type == defines.controllers.character and row.connected_to_network then
-      result[2].caption = (
-        (row.inventory or 0)
-        .. " / [color="
-        .. constants.colors.logistic_str
-        .. "]"
-        .. (row.logistic or 0)
-        .. "[/color]"
-      )
-    else
-      result[2].caption = (row.inventory or 0)
+    -- clear existing caption
+    for j = 1, #result do
+      result[j].caption = ""
     end
-    -- request filter
-    local request_label = result[3]
-    if row.logistic_requests_available then
-      local request = row.request
-      if request then
-        local max = request.max or math.max_uint
-        if max == math.max_uint then
-          max = constants.infinity_rep
-        end
-        request_label.caption = request.min .. " / " .. max
-        if request.is_temporary then
-          request_label.caption = "(T) " .. request_label.caption
-        end
-        request_label.style.font_color = constants.colors[row.request_color or "normal"]
-      else
-        request_label.caption = "--"
-      end
-    else
-      request_label.caption = ""
+
+    local hidden_abbrev = row.hidden and "[font=default-semibold](H)[/font]  " or ""
+    for j = 1, #row.caption do
+      result[j].caption = hidden_abbrev .. row.caption[j]
+      result[j].tooltip = result_tooltip
     end
 
     result[4].caption = "[font=default-small-bold]" .. row.source .. "[/font]"
