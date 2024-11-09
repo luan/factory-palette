@@ -150,7 +150,7 @@ styles.fpal_disablable_textfield_modern = {
   default_background = no_background,
 }
 
-styles.fpal_disablable_textfield_classic = {
+styles.fpal_disablable_textfield = {
   type = "textbox_style",
   disabled_background = styles.textbox.default_background,
   disabled_font_color = button_default_font_color,
@@ -159,17 +159,10 @@ styles.fpal_disablable_textfield_classic = {
 
 -- BUTTON STYLES
 
-styles.fpal_close_button_modern = {
+styles.fpal_close_button = {
   type = "button_style",
   parent = "frame_action_button",
-  height = 20,
-  width = 20,
-}
-
-styles.fpal_close_button_classic = {
-  type = "button_style",
-  parent = "fpal_close_button_modern",
-  top_margin = 4,
+  top_margin = 0,
   left_margin = 4,
 }
 
@@ -182,8 +175,8 @@ styles.fpal_titlebar_separator_line_modern = {
   right_margin = -17,
 }
 
-styles.fpal_titlebar_separator_line_classic = {
+styles.fpal_titlebar_separator_line = {
   type = "line_style",
   parent = "fpal_titlebar_separator_line_modern",
-  top_margin = -2,
+  top_margin = 2,
 }

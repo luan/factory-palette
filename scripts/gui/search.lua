@@ -269,7 +269,6 @@ function gui.build(player, player_table)
     {
       name = "window",
       type = "frame",
-      -- style = "fpal_window_modern",
       direction = "vertical",
       visible = false,
       elem_mods = { auto_center = true },
@@ -280,7 +279,6 @@ function gui.build(player, player_table)
       -- Titlebar
       {
         type = "flow",
-        -- style = "fpal_titlebar_frame",
         {
           name = "titlebar_flow",
           type = "flow",
@@ -291,8 +289,8 @@ function gui.build(player, player_table)
           {
             name = "search_textfield",
             type = "textfield",
-            style = "fpal_disablable_textfield_classic",
-            style_mods = { width = 420, bottom_margin = 8 },
+            style = "fpal_disablable_textfield",
+            style_mods = { width = 420 },
             clear_and_focus_on_right_click = true,
             lose_focus_on_confirm = true,
             handler = {
@@ -302,7 +300,7 @@ function gui.build(player, player_table)
           },
           {
             type = "sprite-button",
-            style = "fpal_close_button_classic",
+            style = "fpal_close_button",
             sprite = "utility/close",
             hovered_sprite = "utility/close",
             clicked_sprite = "utility/close",
@@ -312,13 +310,12 @@ function gui.build(player, player_table)
       },
       {
         type = "line",
-        style = "fpal_titlebar_separator_line_classic",
+        style = "fpal_titlebar_separator_line",
         ignored_by_interaction = true,
       },
       -- Main content frame
       {
         type = "flow",
-        -- style = "inside_shallow_frame_with_padding",
         style_mods = { top_padding = -2, vertically_stretchable = true },
         direction = "vertical",
         drag_target = "window",

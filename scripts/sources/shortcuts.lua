@@ -14,7 +14,7 @@ local function run(player, player_table, query, combined_contents)
         name = name,
         caption = "[shortcut=" .. name .. "]  " .. translation,
         translation = translation,
-        -- remote = { "Shortcuts-ick", "on_lua_shortcut", { player_index = player.index, prototype_name = name } },
+        remote = { "Shortcuts-ick", "on_lua_shortcut", { player_index = player.index, prototype_name = name } },
       }
 
       i = i + 1
