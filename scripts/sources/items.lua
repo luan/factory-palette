@@ -187,11 +187,4 @@ local function run(player, player_table, query, combined_contents)
   return results
 end
 
-return {
-  on_init = function()
-  search.add_source("items", run)
-  end,
-  on_load = function()
-  search.add_source("items", run)
-  end,
-}
+return search.add_source("items", run)

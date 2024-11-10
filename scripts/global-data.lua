@@ -13,16 +13,20 @@ function global_data.on_configuration_changed()
   for name, prototype in pairs(prototypes.item) do
     dictionary.add("item", name, prototype.localised_name)
   end
+
   dictionary.new("shortcut")
   for name, prototype in pairs(prototypes.shortcut) do
     if prototype.action == "lua" then
       dictionary.add("shortcut", name, prototype.localised_name)
     end
   end
+
   dictionary.new("technology")
   for name, prototype in pairs(prototypes.technology) do
     dictionary.add("technology", name, prototype.localised_name)
   end
+
+  dictionary.new("source")
 end
 
 function global_data.on_tick()

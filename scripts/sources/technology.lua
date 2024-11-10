@@ -53,11 +53,4 @@ remote.add_interface("factory-palette.technology", {
   end,
 })
 
-return {
-  on_init = function()
-    search.add_source("technology", run)
-  end,
-  on_load = function()
-    search.add_source("technology", run)
-  end,
-}
+return search.add_source("technology", run)

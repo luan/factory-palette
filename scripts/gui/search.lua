@@ -321,6 +321,27 @@ function gui.build(player, player_table)
         style_mods = { top_padding = -2, vertically_stretchable = true },
         direction = "vertical",
         drag_target = "window",
+        -- Source filter label
+        {
+          name = "source_filter",
+          type = "frame",
+          style = "filter_frame",
+          style_mods = { top_padding = -5, right_padding = 4, left_margin = -12, right_margin = -12, bottom_margin = 0, top_margin = -4, height = 20, horizontally_stretchable = true },
+          visible = false,
+          {
+            type = "label",
+            caption = {
+              "",
+              "[font=default-small-semibold]",
+              { "gui.fpal-filtered-sources" },
+              "[/font]",
+            },
+          },
+          {
+            name = "source_filter_label",
+            type = "label",
+          },
+        },
         -- Warning header
         {
           name = "warning_subheader",
@@ -455,17 +476,33 @@ function gui.perform_search(player, player_table, gui_data, updated_query, combi
     gui.clear_results(results_table)
     state.results = {}
     elems.results_scroll_pane.style.height = 0
+    elems.source_filter.visible = false
     return
   end
 
-  local results = search.run(player, player_table, query, combined_contents)
-  gui.update_results_table(player, player_table, results)
+  -- Get results and source filter info
+  local results, filtered_sources = search.run(player, player_table, query, combined_contents)
 
-  -- TODO: figure out how to get generic warnings
-  -- Update warning visibility
-  -- elems.warning_subheader.visible = gui.should_show_warning(player, connected_to_network, logistic_requests_available)
-  -- Update table margin
-  -- results_table.style.right_margin = gui.should_adjust_margin(player, logistic_requests_available) and -15 or 0
+  -- Update source filter label
+  if filtered_sources then
+    local source_names = {}
+    for name in pairs(filtered_sources) do
+      table.insert(source_names, { "fpal.sources." .. name })
+    end
+    local function format_source_name(name)
+      return { "", "[font=default-small-semibold][color=128, 126, 160]", name, "[/color][/font]" }
+    end
+    elems.source_filter_label.caption = format_source_name(source_names[1])
+    for i = 2, #source_names do
+      table.insert(elems.source_filter_label.caption, ", ")
+      table.insert(elems.source_filter_label.caption, format_source_name(source_names[i]))
+    end
+    elems.source_filter.visible = true
+  else
+    elems.source_filter.visible = false
+  end
+
+  gui.update_results_table(player, player_table, results)
 
   local visible_rows = math.min(#results, constants.max_visible_rows)
   elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6
