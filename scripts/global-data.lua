@@ -19,6 +19,10 @@ function global_data.on_configuration_changed()
       dictionary.add("shortcut", name, prototype.localised_name)
     end
   end
+  dictionary.new("technology")
+  for name, prototype in pairs(prototypes.technology) do
+    dictionary.add("technology", name, prototype.localised_name)
+  end
 end
 
 function global_data.on_tick()

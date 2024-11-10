@@ -15,4 +15,5 @@ handler.add_libraries({
 
   require("scripts.sources.items"),
   require("scripts.sources.shortcuts"),
+  require("scripts.sources.technology"),
 })

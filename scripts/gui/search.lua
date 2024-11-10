@@ -219,7 +219,7 @@ function gui.update_results_table(player, player_table, results)
       result[j].tooltip = row.tooltip
     end
 
-    result[4].caption = "[font=default-small-bold]" .. row.source .. "[/font]"
+    result[4].caption = { "", "[font=default-small-bold]", { "fpal.sources." .. row.source }, "[/font]" }
     result[4].style.font_color = constants.colors.muted
   end
   -- destroy extraneous rows
