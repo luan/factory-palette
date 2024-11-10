@@ -103,6 +103,10 @@ function logistic_request_gui.build(player, player_table)
   if orphaned_window and orphaned_window.valid then
     orphaned_window.destroy()
   end
+  local orphaned_frame = player.gui.screen.fpal_request_focus_frame
+  if orphaned_frame and orphaned_frame.valid then
+    orphaned_frame.destroy()
+  end
   logistic_request_gui.destroy(player_table)
   local resolution = player.display_resolution
   local scale = player.display_scale
@@ -290,9 +294,13 @@ function logistic_request_gui.destroy(player_table)
     return
   end
 
-  local window = gui_data.elems.window
+  local window = gui_data.elems.fpal_request_window
   if window and window.valid then
-    player_table.guis.request.elems.window.destroy()
+    window.destroy()
+  end
+  local focus_frame = gui_data.elems.fpal_request_focus_frame
+  if focus_frame and focus_frame.valid then
+    focus_frame.destroy()
   end
   player_table.guis.request = nil
 end
