@@ -19,7 +19,7 @@ Factory Palette is your shortcut to everything in Factorio. Think of it as a com
 
 ## Controls
 
-- `Alt + P` (default): Open Factory Palette
+- `Ctrl/⌘ + K` (default): Open Factory Palette
 - `↑/↓`: Navigate through results
 - `Enter`: Confirm selection
 - `Shift + Enter`: Alternative action
