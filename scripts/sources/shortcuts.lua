@@ -13,7 +13,7 @@ local function tooltip(result)
   }
 end
 
-local function run(player, player_table, query, combined_contents)
+local function run(player, player_table, query)
   local i = 0
   local translations = dictionary.get(player.index, "shortcut")
   local results = {}

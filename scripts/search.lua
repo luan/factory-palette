@@ -26,7 +26,7 @@ local function get_matching_sources(prefix, player_index)
   return matches
 end
 
-function search.run(player, player_table, query, combined_contents)
+function search.run(player, player_table, query)
   local all_results = {}
 
   -- Check if query ends with just a space
@@ -54,7 +54,7 @@ function search.run(player, player_table, query, combined_contents)
   end
 
   for source_name, source in pairs(sources_to_search) do
-    local source_results = source(player, player_table, query, combined_contents)
+    local source_results = source(player, player_table, query)
     for _, result in pairs(source_results) do
       result.source = source_name
     end

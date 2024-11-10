@@ -29,8 +29,4 @@ function global_data.on_configuration_changed()
   dictionary.new("source")
 end
 
-function global_data.on_tick()
-  dictionary.on_tick()
-end
-
 return global_data

@@ -66,7 +66,7 @@ local function is_current(player, prototype)
   return player.force.current_research and player.force.current_research.prototype == tech.prototype
 end
 
-local function run(player, player_table, query, combined_contents)
+local function run(player, player_table, query)
   local i = 0
   local translations = dictionary.get(player.index, "technology")
   local results = {}

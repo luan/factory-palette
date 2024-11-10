@@ -95,20 +95,11 @@ local on_player_inventory_changed = function(e)
 
   local main_inventory = player.get_main_inventory()
   if main_inventory and main_inventory.valid then
-    -- avoid getting the contents until they're actually needed
-    local combined_contents
-    local function get_combined_contents()
-      if not combined_contents then
-        combined_contents = search.get_combined_inventory_contents(player, main_inventory)
-      end
-      return combined_contents
-    end
-
     local gui_data = player_table.guis.search
     if gui_data then
       local state = gui_data.state
       if state.visible and not state.subwindow_open then
-        search_gui.perform_search(player, player_table, gui_data, false, get_combined_contents())
+        search_gui.perform_search(player, player_table, gui_data, false)
       end
     end
   end

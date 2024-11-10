@@ -46,7 +46,7 @@ local function get_combined_inventory_contents(player, main_inventory)
   return combined_contents, true
 end
 
-local function run(player, player_table, query, combined_contents)
+local function run(player, player_table, query)
   -- don't bother if they don't have a main inventory
   local main_inventory = player.get_main_inventory()
   if not main_inventory or not main_inventory.valid then
@@ -68,10 +68,7 @@ local function run(player, player_table, query, combined_contents)
   local logistic_requests_available = false
   local results = {}
 
-  -- get contents of all player inventories and cursor stack
-  -- in some cases, this is passed in externally to save performance
-  combined_contents = combined_contents or get_combined_inventory_contents(player, main_inventory)
-  -- don't bother doing anything if they don't have an inventory
+  local combined_contents = get_combined_inventory_contents(player, main_inventory)
   local contents = {
     inbound = {},
     inventory = combined_contents,

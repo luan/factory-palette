@@ -58,6 +58,12 @@ function handlers.on_close(args)
   gui.close(args.player, args.player_table)
 end
 
+function handlers.on_tick()
+  if next(storage.update_search_results) then
+    gui.update_for_active_players()
+  end
+end
+
 function handlers.select_item(args, e)
   if e.shift then
     args.shift = true
@@ -326,7 +332,16 @@ function gui.build(player, player_table)
           name = "source_filter",
           type = "frame",
           style = "filter_frame",
-          style_mods = { top_padding = -5, right_padding = 4, left_margin = -12, right_margin = -12, bottom_margin = 0, top_margin = -4, height = 20, horizontally_stretchable = true },
+          style_mods = {
+            top_padding = -5,
+            right_padding = 4,
+            left_margin = -12,
+            right_margin = -12,
+            bottom_margin = 0,
+            top_margin = -4,
+            height = 20,
+            horizontally_stretchable = true,
+          },
           visible = false,
           {
             type = "label",
@@ -454,8 +469,7 @@ end
 ---@param player LuaPlayer
 ---@param player_table table
 ---@param updated_query? boolean
----@param combined_contents? table
-function gui.perform_search(player, player_table, gui_data, updated_query, combined_contents)
+function gui.perform_search(player, player_table, gui_data, updated_query)
   local elems = gui_data.elems
   local state = gui_data.state
 
@@ -481,7 +495,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query, combi
   end
 
   -- Get results and source filter info
-  local results, filtered_sources = search.run(player, player_table, query, combined_contents)
+  local results, filtered_sources = search.run(player, player_table, query)
 
   -- Update source filter label
   if filtered_sources then
@@ -591,17 +605,15 @@ gui.events = {
   ["fpal-shift-confirm"] = h():with_param("shift", true):with_gui_check():chain(handlers.select_item),
   ["fpal-confirm"] = h():with_param("confirm", true):with_gui_check():chain(handlers.select_item),
   [events.reopen_after_subwindow] = h():chain(handlers.reopen_after_subwindow),
-  [defines.events.on_lua_shortcut] = h():with_condition("prototype_name", "fpal-search"):chain(handlers.toggle_search_gui),
+  [defines.events.on_lua_shortcut] = h()
+    :with_condition("prototype_name", "fpal-search")
+    :chain(handlers.toggle_search_gui),
+  [defines.events.on_tick] = h():chain(handlers.on_tick),
 }
 
 flib_gui.add_handlers(handlers, function(e, handler)
   h():chain(handler)(e)
 end, "search")
 
-function gui.on_tick()
-  if next(storage.update_search_results) then
-    gui.update_for_active_players()
-  end
-end
 
 return gui
