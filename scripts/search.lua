@@ -64,14 +64,7 @@ function search.run(player, player_table, query, combined_contents)
 end
 
 function search.add_source(name, source)
-  local function add_source()
-    search.sources[name] = source
-  end
-  return {
-    on_init = add_source,
-    on_configuration_changed = add_source,
-    on_load = add_source,
-  }
+  search.sources[name] = source
 end
 
 function search.on_init()
@@ -79,7 +72,7 @@ function search.on_init()
 end
 
 function search.on_configuration_changed()
-  for _, source in pairs(search.sources) do
+  for name, source in pairs(search.sources) do
     dictionary.add("source", name, { "fpal.sources." .. name })
   end
 end

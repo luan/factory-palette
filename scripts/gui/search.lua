@@ -528,7 +528,7 @@ function gui.select_item(player, player_table, modifiers, index)
   end
 
   if type(result.remote) == "table" then
-    remote.call(result.remote[1], result.remote[2], result.remote[3])
+    remote.call(result.remote[1], result.remote[2], result.remote[3], modifiers)
     return
   end
 
