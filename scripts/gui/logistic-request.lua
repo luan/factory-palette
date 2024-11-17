@@ -5,7 +5,7 @@ local constants = require("constants")
 local events = require("events")
 local h = require("handlers").for_gui("request")
 
-local logistic_request = require("scripts.logistic-request")
+local logistic_request = require("scripts.sources.logistic-request")
 
 local logistic_request_gui = {}
 local handlers = {}
@@ -78,8 +78,7 @@ function handlers.update_request(args, e)
 end
 
 function handlers.clear_request(args, e)
-  local state = args.gui_data.state
-  logistic_request.clear(args.player, args.player_table, state.item_data.name)
+  logistic_request.clear(args.player, args.gui_data.state.item_data.name)
   -- invoke `on_gui_closed` so the search GUI will be refocused
   args.player.opened = nil
 end

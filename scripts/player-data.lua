@@ -1,5 +1,21 @@
+---@class FpalPlayerTable
+---@field flags table<string, boolean>
+---@field guis table<string, any>
+---@field logistic_requests FpalLogisticRequests -- TODO: move this to items source
+---@field settings table<string, any>
+
+---@class FpalLogisticRequests
+---@field by_index table<number, FpalLogisticRequest>
+---@field by_name table<string, FpalLogisticRequest>
+---@field temporary table<string, FpalLogisticRequest>
+
+---@class FpalLogisticRequest
+---@field name string
+---@field min number
+---@field max number
+---@field age number
+
 local constants = require("constants")
-local logistic_request = require("scripts.logistic-request")
 
 local logistic_request_gui = require("scripts.gui.logistic-request")
 local search_gui = require("scripts.gui.search")
@@ -59,11 +75,6 @@ function player_data.refresh(player, player_table)
 
   -- update settings
   player_data.update_settings(player, player_table)
-
-  -- refresh requests
-  if player.controller_type == defines.controllers.character then
-    logistic_request.refresh(player, player_table)
-  end
 end
 
 function player_data.update_settings(player, player_table)

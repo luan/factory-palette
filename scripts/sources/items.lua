@@ -17,44 +17,7 @@ local function tooltip(result)
   }
 end
 
-local function get_combined_inventory_contents(player, main_inventory)
-  -- main inventory contents
-  local combined_contents = {}
-  for _, item in ipairs(main_inventory.get_contents()) do
-    combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
-  end
-  -- cursor stack
-  local cursor_stack = player.cursor_stack
-  if cursor_stack and cursor_stack.valid_for_read then
-    combined_contents[cursor_stack.name] = (combined_contents[cursor_stack.name] or 0) + cursor_stack.count
-  end
-  -- other
-  for _, inventory_def in ipairs({
-    -- for some reason, the character_ammo and character_guns inventories work in the editor as well
-    defines.inventory.character_ammo,
-    defines.inventory.character_guns,
-    -- defines.inventory.character_trash
-  }) do
-    local inventory = player.get_inventory(inventory_def)
-    if inventory and inventory.valid then
-      for _, item in ipairs(inventory.get_contents() or {}) do
-        combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
-      end
-    end
-  end
-
-  return combined_contents, true
-end
-
 local function run(player, player_table, query)
-  -- don't bother if they don't have a main inventory
-  local main_inventory = player.get_main_inventory()
-  if not main_inventory or not main_inventory.valid then
-    return {}
-  end
-
-  local requests = player_table.logistic_requests
-  local requests_by_name = requests.by_name
   local settings = player_table.settings
   local translations = dictionary.get(player.index, "item")
 
@@ -68,7 +31,7 @@ local function run(player, player_table, query)
   local logistic_requests_available = false
   local results = {}
 
-  local combined_contents = get_combined_inventory_contents(player, main_inventory)
+  local combined_contents = inventory.get_combined_contents(player, player.get_main_inventory())
   local contents = {
     inbound = {},
     inventory = combined_contents,
@@ -81,6 +44,18 @@ local function run(player, player_table, query)
   -- get logistic network and related contents
   if character and character.valid then
     logistic_requests_available = player.force.character_logistic_requests
+    local requests_by_name = {}
+    if logistic_requests_available then
+      local logistic_point = character.get_logistic_point(defines.logistic_member_index.character_requester)
+      if logistic_point then
+        for _, section in ipairs(logistic_point.sections) do
+          for _, filter in ipairs(section.filters) do
+            requests_by_name[filter.value.name] = filter
+          end
+        end
+      end
+    end
+
     for _, data in ipairs(constants.logistic_point_data) do
       local point = character.get_logistic_point(data.logistic_point)
       if point and point.valid then

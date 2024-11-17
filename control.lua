@@ -12,7 +12,7 @@ handler.add_libraries({
 
   require("scripts.global-data"),
 
-  require("scripts.logistic-request"),
+  require("scripts.sources.logistic-request"),
   require("scripts.search"),
   require("scripts.gui"),
   require("scripts.gui.search"),
