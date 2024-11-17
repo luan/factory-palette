@@ -3,8 +3,10 @@ local inventory = {}
 function inventory.get_combined_contents(player, main_inventory)
   -- main inventory contents
   local combined_contents = {}
-  for _, item in ipairs(main_inventory.get_contents()) do
-    combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+  if main_inventory then
+    for _, item in ipairs(main_inventory.get_contents()) do
+      combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+    end
   end
   -- cursor stack
   local cursor_stack = player.cursor_stack
