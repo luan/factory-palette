@@ -2,6 +2,7 @@ local dictionary = require("__flib__.dictionary")
 
 local constants = require("constants")
 
+local inventory = require("scripts.sources.inventory")
 local search = require("scripts.search")
 
 local function tooltip(result)
@@ -40,11 +41,11 @@ local function run(player, player_table, query)
   }
 
   local controller_type = player.controller_type
+  local requests_by_name = {}
 
   -- get logistic network and related contents
   if character and character.valid then
     logistic_requests_available = player.force.character_logistic_requests
-    local requests_by_name = {}
     if logistic_requests_available then
       local logistic_point = character.get_logistic_point(defines.logistic_member_index.character_requester)
       if logistic_point then
