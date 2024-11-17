@@ -138,7 +138,9 @@ local function run(player, player_table, query)
             if request.is_temporary then
               request_label = "(T) " .. request_label
             end
-            request_label.style.font_color = constants.colors[result.request_color or "normal"]
+            if request_label.style then
+              request_label.style.font_color = constants.colors[result.request_color or "normal"]
+            end
           else
             request_label = "--"
           end

@@ -24,6 +24,19 @@ function logistic_request.set(player, player_table, name, counts, is_temporary)
     return
   end
 
+  -- search for first empty slot
+  local i = 1
+  while true do
+    local existing_request = section.get_slot(i)
+    local value = existing_request and existing_request.value
+    if value and value.type == "item" then
+      i = i + 1
+    else
+      request_index = i
+      break
+    end
+  end
+
   section.set_slot(request_index, {
     value = name,
     min = counts.min,
