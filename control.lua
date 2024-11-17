@@ -3,7 +3,6 @@ local handler = require("__core__.lualib.event_handler")
 require("scripts.sources.items")
 require("scripts.sources.shortcuts")
 require("scripts.sources.technology")
-require("scripts.sources.calculator")
 
 handler.add_libraries({
   require("scripts.migrations"),

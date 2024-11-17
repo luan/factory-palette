@@ -2,8 +2,6 @@ local dictionary = require("__flib__.dictionary")
 
 local constants = require("constants")
 
-local search = require("scripts.search")
-
 local function tooltip(result)
   return {
     "",
@@ -13,7 +11,7 @@ local function tooltip(result)
   }
 end
 
-local function run(player, player_table, query)
+local function search(player, player_table, query)
   local i = 0
   local translations = dictionary.get(player.index, "shortcut")
   local results = {}
@@ -23,7 +21,11 @@ local function run(player, player_table, query)
         name = name,
         caption = { "[shortcut=" .. name .. "]  " .. translation },
         translation = translation,
-        remote = { "factory-palette.shortcuts", "trigger", { player_index = player.index, prototype_name = name } },
+        remote = {
+          "factory-palette.source.shortcuts",
+          "select",
+          { player_index = player.index, prototype_name = name },
+        },
         tooltip = tooltip(result),
       }
 
@@ -38,7 +40,12 @@ local function run(player, player_table, query)
   return results
 end
 
-local function trigger(data, modifiers)
+local function select(data, modifiers)
+  local player = game.players[data.player_index]
+  if not player then
+    return
+  end
+
   local result = data.result
   if not result then
     return
@@ -49,8 +56,8 @@ local function trigger(data, modifiers)
   return true
 end
 
-remote.add_interface("factory-palette.shortcuts", {
-  trigger = trigger,
+remote.add_interface("factory-palette.source.shortcuts", {
+  search = search,
+  select = select,
 })
 
-search.add_source("shortcuts", run)

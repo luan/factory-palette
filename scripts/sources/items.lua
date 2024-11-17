@@ -1,11 +1,8 @@
 local dictionary = require("__flib__.dictionary")
 
 local constants = require("constants")
-
-local inventory = require("scripts.sources.inventory")
-local search = require("scripts.search")
 local cursor = require("scripts.cursor")
-
+local inventory = require("scripts.sources.inventory")
 local logistic_request_gui = require("scripts.gui.logistic-request")
 
 local function tooltip(result)
@@ -21,15 +18,15 @@ local function tooltip(result)
     "\n",
     { "gui.fpal-control-click-tooltip" },
     " ",
-    { "gui.fpal.items.craft" },
+    { "factory-palette.source.items.craft" },
     "\n",
     { "gui.fpal-control-shift-click-tooltip" },
     " ",
-    { "gui.fpal.items.craft-many" },
+    { "factory-palette.source.items.craft-many" },
   }
 end
 
-local function run(player, player_table, query)
+local function search(player, player_table, query)
   local settings = player_table.settings
   local translations = dictionary.get(player.index, "item")
 
@@ -103,8 +100,8 @@ local function run(player, player_table, query)
           tooltip = tooltip(result),
         }
         result.remote = {
-          "factory-palette.items",
-          "trigger",
+          "factory-palette.source.items",
+          "select",
           { player_index = player.index, query = query, result = result },
         }
 
@@ -240,7 +237,7 @@ local function set_in_cursor(player, result)
   end
 end
 
-local function trigger(data, modifiers)
+local function select(data, modifiers)
   local player = game.players[data.player_index]
   if not player then
     return
@@ -262,8 +259,7 @@ local function trigger(data, modifiers)
   return set_in_cursor(player, result)
 end
 
-search.add_source("items", run)
-
-remote.add_interface("factory-palette.items", {
-  trigger = trigger,
+remote.add_interface("factory-palette.source.items", {
+  search = search,
+  select = select,
 })

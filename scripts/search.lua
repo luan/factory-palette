@@ -4,7 +4,7 @@ local dictionary = require("__flib__.dictionary")
 local constants = require("constants")
 
 local search = {
-  sources = {},
+  _sources = {},
 }
 
 -- Helper function to check if a string starts with a prefix
@@ -12,21 +12,37 @@ local function starts_with(str, prefix)
   return string.sub(str, 1, #prefix) == prefix
 end
 
+local function all_sources(player_index)
+  if search._sources[player_index] then
+    return search._sources[player_index]
+  end
+  local sources = {}
+  for interface in pairs(remote.interfaces) do
+    if starts_with(interface, "factory-palette.source.") then
+      local name = string.gsub(interface, "factory%-palette.source%.", "")
+      sources[name] = interface
+    end
+  end
+  search._sources[player_index] = sources
+  return sources
+end
+
 -- Helper function to get matching sources based on prefix
 local function get_matching_sources(prefix, player_index)
   local matches = {}
-  local translations = dictionary.get(player_index, "source")
-  for name, translation in pairs(translations) do
-    if starts_with(string.lower(translation), string.lower(prefix)) then
-      if search.sources[name] then -- Only include if we actually have this source
-        matches[name] = search.sources[name]
+  local sources = all_sources(player_index)
+  for name, interface in pairs(sources) do
+    if starts_with(string.lower(name), string.lower(prefix)) then
+      -- Only include if we actually have this source
+      if remote.interfaces[interface] then
+        matches[name] = interface
       end
     end
   end
   return matches
 end
 
-function search.run(player, player_table, query)
+function search.search(player, player_table, query)
   local all_results = {}
 
   -- Check if query ends with just a space
@@ -41,7 +57,7 @@ function search.run(player, player_table, query)
 
   -- Check if query starts with a source prefix
   local first_word, remaining = string.match(query, "^(%S+)%s+(.+)$")
-  local sources_to_search = search.sources
+  local sources_to_search = all_sources(player.index)
   local filtered_sources = nil
 
   if first_word and remaining then
@@ -53,28 +69,14 @@ function search.run(player, player_table, query)
     end
   end
 
-  for source_name, source in pairs(sources_to_search) do
-    local source_results = source(player, player_table, query)
+  for source_name, source_interface in pairs(sources_to_search) do
+    local source_results = remote.call(source_interface, "search", player, player_table, query)
     for _, result in pairs(source_results) do
       result.source = source_name
     end
     all_results = flib_table.array_merge({ all_results, source_results })
   end
   return all_results, filtered_sources
-end
-
-function search.add_source(name, source)
-  search.sources[name] = source
-end
-
-function search.on_init()
-  search.on_configuration_changed()
-end
-
-function search.on_configuration_changed()
-  for name, source in pairs(search.sources) do
-    dictionary.add("source", name, { "fpal.sources." .. name })
-  end
 end
 
 return search

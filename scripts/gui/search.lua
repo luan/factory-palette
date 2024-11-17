@@ -86,8 +86,7 @@ function handlers.recenter(args, e)
 end
 
 function handlers.relocate_dimmer(args)
-  local player_table = args.player_table
-  local gui_data = player_table.guis.search
+  local gui_data = args.gui_data
   gui_data.elems.window_dimmer.location = gui_data.elems.window.location
 end
 
@@ -223,7 +222,8 @@ function gui.update_results_table(player, player_table, results)
       result[j].tooltip = row.tooltip
     end
 
-    result[4].caption = { "", "[font=default-small-bold]", { "fpal.sources." .. row.source }, "[/font]" }
+    result[4].caption =
+      { "", "[font=default-small-bold]", { "factory-palette.source." .. row.source .. ".name" }, "[/font]" }
     result[4].style.font_color = constants.colors.muted
   end
   -- destroy extraneous rows
@@ -493,13 +493,13 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
   end
 
   -- Get results and source filter info
-  local results, filtered_sources = search.run(player, player_table, query)
+  local results, filtered_sources = search.search(player, player_table, query)
 
   -- Update source filter label
   if filtered_sources then
     local source_names = {}
     for name in pairs(filtered_sources) do
-      table.insert(source_names, { "fpal.sources." .. name })
+      table.insert(source_names, { "factory-palette.source." .. name .. ".name" })
     end
     local function format_source_name(name)
       return { "", "[font=default-small-semibold][color=128, 126, 160]", name, "[/color][/font]" }

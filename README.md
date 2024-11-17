@@ -44,6 +44,10 @@ Technologies are color-coded for easy reference:
 
 Factory Palette uses a "sources" system that allows other mods to add new searchable content types. Each source provides search functionality, result formatting, and handling of user interactions.
 
+### Available extensions
+
+- [factory-palette-calculator](https://github.com/luan/factory-palette-calculator): [mod portal](https://mods.factorio.com/mod/factory-palette-calculator)
+
 ### Writing a Source
 
 A source is a Lua module that registers itself using `search.add_source()`. Here's how to create one:

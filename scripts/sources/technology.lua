@@ -2,20 +2,20 @@ local dictionary = require("__flib__.dictionary")
 
 local constants = require("constants")
 
-local search = require("scripts.search")
-
 local function tooltip(result)
   return {
     "",
     { "gui.fpal-click-tooltip" },
     " ",
-    { "fpal.technology.open" },
+    { "factory-palette.source.technology.open" },
     (result.available and not result.researched) and "\n" or "",
     (result.available and not result.researched) and { "gui.fpal-shift-click-tooltip" } or "",
     " ",
-    (result.available and not result.researched) and (result.current and { "fpal.technology.remove" } or {
-      "fpal.technology.add",
-    }) or "",
+    (result.available and not result.researched)
+        and (result.current and { "factory-palette.source.technology.remove" } or {
+          "factory-palette.source.technology.add",
+        })
+      or "",
   }
 end
 
@@ -66,7 +66,7 @@ local function is_current(player, prototype)
   return player.force.current_research and player.force.current_research.prototype == tech.prototype
 end
 
-local function run(player, player_table, query)
+local function search(player, player_table, query)
   local i = 0
   local translations = dictionary.get(player.index, "technology")
   local results = {}
@@ -86,8 +86,8 @@ local function run(player, player_table, query)
           caption = { color .. "[technology=" .. name .. "]  " .. translation .. current_caption .. "[/color]" },
           translation = translation,
           remote = {
-            "factory-palette.technology",
-            "trigger",
+            "factory-palette.source.technology",
+            "select",
             { player_index = player.index, technology = technology },
           },
         }
@@ -116,7 +116,7 @@ local function run(player, player_table, query)
   return results
 end
 
-local function trigger(data, modifiers)
+local function select(data, modifiers)
   local player = game.players[data.player_index]
   if not player then
     return
@@ -140,8 +140,7 @@ local function trigger(data, modifiers)
   return true
 end
 
-remote.add_interface("factory-palette.technology", {
-  trigger = trigger,
+remote.add_interface("factory-palette.source.technology", {
+  search = search,
+  select = select,
 })
-
-search.add_source("technology", run)
