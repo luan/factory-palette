@@ -4,6 +4,9 @@ local constants = require("constants")
 
 local inventory = require("scripts.sources.inventory")
 local search = require("scripts.search")
+local cursor = require("scripts.cursor")
+
+local logistic_request_gui = require("scripts.gui.logistic-request")
 
 local function tooltip(result)
   return {
@@ -15,6 +18,14 @@ local function tooltip(result)
     { "gui.fpal-shift-click-tooltip" },
     " ",
     { "gui.fpal-set-logistic-request" },
+    "\n",
+    { "gui.fpal-control-click-tooltip" },
+    " ",
+    { "gui.fpal.items.craft" },
+    "\n",
+    { "gui.fpal-control-shift-click-tooltip" },
+    " ",
+    { "gui.fpal.items.craft-many" },
   }
 end
 
@@ -91,6 +102,11 @@ local function run(player, player_table, query)
           translation = translation,
           tooltip = tooltip(result),
         }
+        result.remote = {
+          "factory-palette.items",
+          "trigger",
+          { player_index = player.index, query = query, result = result },
+        }
 
         if controller_type == defines.controllers.character then
           -- add logistic request, if one exists
@@ -162,4 +178,92 @@ local function run(player, player_table, query)
   return results
 end
 
+---@param player LuaPlayer
+---@param result Result
+local function craft(player, result, count)
+  local player_table = storage.players[player.index]
+  if not player_table then
+    return
+  end
+
+  local recipe = player.force.recipes[result.name]
+  if not recipe then
+    return
+  end
+
+  local crafting_count = player.begin_crafting({ count = count, recipe = recipe })
+  return crafting_count == count
+end
+
+---@param player LuaPlayer
+---@param result Result
+local function set_logistic_request(player, result)
+  local player_table = storage.players[player.index]
+  if not player_table then
+    return
+  end
+
+  local gui_data = player_table.guis.search
+  local elems = gui_data.elems
+  local state = gui_data.state
+  local player_controller = player.controller_type
+  if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
+    state.subwindow_open = true
+    elems.search_textfield.enabled = false
+    elems.window_dimmer.visible = true
+    elems.window_dimmer.bring_to_front()
+
+    if player_controller == defines.controllers.character then
+      logistic_request_gui.open(player, player_table, result)
+    end
+    return true
+  end
+
+  return false
+end
+
+---@param player LuaPlayer
+---@param result Result
+local function set_in_cursor(player, result)
+  local player_table = storage.players[player.index]
+  if not player_table then
+    return
+  end
+
+  local cursor_stack = player.cursor_stack
+  if cursor_stack and cursor_stack.valid_for_read and cursor_stack.name == result.name then
+    player.create_local_flying_text({ text = { "message.fpal-already-holding-item" }, create_at_cursor = true })
+    return false
+  else
+    cursor.set_stack(player, player.cursor_stack, player_table, result.name)
+    return true
+  end
+end
+
+local function trigger(data, modifiers)
+  local player = game.players[data.player_index]
+  if not player then
+    return
+  end
+
+  local result = data.result
+  if not result then
+    return
+  end
+
+  if modifiers.control and modifiers.shift then
+    return craft(player, result, 10)
+  elseif modifiers.control then
+    return craft(player, result, 5)
+  elseif modifiers.shift then
+    return set_logistic_request(player, result)
+  end
+
+  return set_in_cursor(player, result)
+end
+
 search.add_source("items", run)
+
+remote.add_interface("factory-palette.items", {
+  trigger = trigger,
+})

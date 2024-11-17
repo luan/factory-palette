@@ -128,14 +128,16 @@ local function trigger(data, modifiers)
 
   if modifiers.shift then
     add_research(player, technology)
-    return
+    return true
   end
 
   if modifiers.control then
-    return
+    return false
   end
 
   player.open_technology_gui(technology)
+
+  return true
 end
 
 remote.add_interface("factory-palette.technology", {

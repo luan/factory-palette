@@ -23,7 +23,7 @@ local function run(player, player_table, query)
         name = name,
         caption = { "[shortcut=" .. name .. "]  " .. translation },
         translation = translation,
-        remote = { "Shortcuts-ick", "on_lua_shortcut", { player_index = player.index, prototype_name = name } },
+        remote = { "factory-palette.shortcuts", "trigger", { player_index = player.index, prototype_name = name } },
         tooltip = tooltip(result),
       }
 
@@ -37,5 +37,20 @@ local function run(player, player_table, query)
 
   return results
 end
+
+local function trigger(data, modifiers)
+  local result = data.result
+  if not result then
+    return
+  end
+
+  remote.call("Shortcuts", "on_lua_shortcut", data)
+
+  return true
+end
+
+remote.add_interface("factory-palette.shortcuts", {
+  trigger = trigger,
+})
 
 search.add_source("shortcuts", run)

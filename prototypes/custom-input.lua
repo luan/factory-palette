@@ -45,5 +45,12 @@ data:extend({
     key_sequence = "CONTROL + E",
     alternative_key_sequence = "CONTROL + ENTER",
     order = "f",
-  }
+  },
+  {
+    type = "custom-input",
+    name = "fpal-control-shift-confirm",
+    key_sequence = "CONTROL + SHIFT + E",
+    alternative_key_sequence = "CONTROL + SHIFT + ENTER",
+    order = "g",
+  },
 })

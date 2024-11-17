@@ -8,8 +8,6 @@ local h = require("handlers").for_gui("search")
 local cursor = require("scripts.cursor")
 local search = require("scripts.search")
 
-local logistic_request_gui = require("scripts.gui.logistic-request")
-
 ---@class SearchGuiState
 ---@field last_search_update number
 ---@field query string
@@ -64,7 +62,7 @@ function handlers.on_tick()
   end
 end
 
-function handlers.select_item(args, e)
+function handlers.select_entry(args, e)
   if e.shift then
     args.shift = true
   end
@@ -77,7 +75,7 @@ function handlers.select_item(args, e)
     index = e.element.tags.index
   end
   player_table.confirmed_tick = game.ticks_played
-  gui.select_item(player, player_table, args, index)
+  gui.select_entry(player, player_table, args, index)
 end
 
 function handlers.recenter(args, e)
@@ -202,7 +200,7 @@ function gui.update_results_table(player, player_table, results)
           style = "fpal_clickable_item_label",
           tags = { index = i },
           handler = {
-            [defines.events.on_gui_click] = handlers.select_item,
+            [defines.events.on_gui_click] = handlers.select_entry,
           },
         },
         { type = "label" },
@@ -525,7 +523,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
   state.results = results
 end
 
-function gui.select_item(player, player_table, modifiers, index)
+function gui.select_entry(player, player_table, modifiers, index)
   local gui_data = player_table.guis.search
   local elems = gui_data.elems
   local state = gui_data.state
@@ -542,42 +540,10 @@ function gui.select_item(player, player_table, modifiers, index)
   end
 
   if type(result.remote) == "table" then
-    remote.call(result.remote[1], result.remote[2], result.remote[3], modifiers)
-    return
-  end
-
-  if modifiers.shift then
-    local player_controller = player.controller_type
-    if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
-      state.subwindow_open = true
-      elems.search_textfield.enabled = false
-      elems.window_dimmer.visible = true
-      elems.window_dimmer.bring_to_front()
-
-      if player_controller == defines.controllers.character then
-        logistic_request_gui.open(player, player_table, result)
-      end
-
+    if remote.call(result.remote[1], result.remote[2], result.remote[3], modifiers) then
       player.play_sound({ path = "utility/confirm" })
     else
       player.play_sound({ path = "utility/cannot_build" })
-    end
-  else
-    -- make sure we're not already holding this item
-    local cursor_stack = player.cursor_stack
-    if cursor_stack and cursor_stack.valid_for_read and cursor_stack.name == result.name then
-      player.play_sound({ path = "utility/cannot_build" })
-      player.create_local_flying_text({ text = { "message.fpal-already-holding-item" }, create_at_cursor = true })
-    else
-      -- Close the window after selection if desired
-      if player_table.settings.auto_close then
-        gui.close(player, player_table, true)
-        -- Or prevent the window from closing
-      else
-        state.selected_item_tick = game.ticks_played
-      end
-      cursor.set_stack(player, player.cursor_stack, player_table, result.name)
-      player.play_sound({ path = "utility/confirm" })
     end
   end
 end
@@ -601,9 +567,10 @@ gui.events = {
   ["fpal-nav-up"] = h():with_param("offset", -1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-nav-down"] = h():with_param("offset", 1):with_gui_check():chain(handlers.update_selected_index),
   ["fpal-search"] = h():chain(handlers.toggle_search_gui),
-  ["fpal-control-confirm"] = h():with_param("control", true):with_gui_check():chain(handlers.select_item),
-  ["fpal-shift-confirm"] = h():with_param("shift", true):with_gui_check():chain(handlers.select_item),
-  ["fpal-confirm"] = h():with_param("confirm", true):with_gui_check():chain(handlers.select_item),
+  ["fpal-control-confirm"] = h():with_param("control", true):with_gui_check():chain(handlers.select_entry),
+  ["fpal-shift-confirm"] = h():with_param("shift", true):with_gui_check():chain(handlers.select_entry),
+  ["fpal-control-shift-confirm"] = h():with_param("control", true):with_param("shift", true):with_gui_check():chain(handlers.select_entry),
+  ["fpal-confirm"] = h():with_param("confirm", true):with_gui_check():chain(handlers.select_entry),
   [events.reopen_after_subwindow] = h():chain(handlers.reopen_after_subwindow),
   [defines.events.on_lua_shortcut] = h()
     :with_condition("prototype_name", "fpal-search")

@@ -25,19 +25,16 @@ function logistic_request.set(player, player_table, name, counts, is_temporary)
   end
 
   -- search for first empty slot
-  local i = 1
-  while true do
-    local existing_request = section.get_slot(i)
-    local value = existing_request and existing_request.value
-    if value and value.type == "item" then
-      i = i + 1
-    else
-      request_index = i
+  local index = section.filters_count + 1
+  for i, filter in ipairs(section.filters) do
+    local value = filter.value
+    if value.type == "item" and value.name == name then
+      index = i
       break
     end
   end
 
-  section.set_slot(request_index, {
+  section.set_slot(index, {
     value = name,
     min = counts.min,
     max = counts.max,
@@ -107,7 +104,6 @@ function logistic_request.quick_trash_all(player, player_table)
 end
 
 logistic_request.events = {
-  [defines.events.on_entity_logistic_slot_changed] = h():chain(logistic_request.update),
   [defines.events.on_player_ammo_inventory_changed] = h():chain(logistic_request.update_temporaries),
   [defines.events.on_player_armor_inventory_changed] = h():chain(logistic_request.update_temporaries),
   [defines.events.on_player_gun_inventory_changed] = h():chain(logistic_request.update_temporaries),
