@@ -63,7 +63,9 @@ local function search(args)
       if logistic_point then
         for _, section in ipairs(logistic_point.sections) do
           for _, filter in ipairs(section.filters) do
-            requests_by_name[filter.value.name] = filter
+            if filter.value and filter.value.name then
+              requests_by_name[filter.value.name] = filter
+            end
           end
         end
       end
