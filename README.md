@@ -50,7 +50,69 @@ Factory Palette uses a "sources" system that allows other mods to add new search
 
 ### Writing a Source
 
-A source is a Lua module that registers itself using `search.add_source()`. Here's how to create one:
+A source is a Lua module that provides searchable content to Factory Palette. Here's a step-by-step guide to creating one:
+
+1. **Create a New Mod**
+   Create a new mod following Factorio's mod structure with appropriate dependencies on factory-palette.
+
+2. **Create the Source Module**
+   Create a `control.lua` file that implements these key components:
+
+   ```lua
+   -- Search function that processes queries and returns results
+  local function search(args)
+    local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
+     -- Process the query and generate results
+     -- Return empty table if no matches
+     if not matches_query(query) then
+       return {}
+     end
+
+     -- Return array of results in this format:
+     return {
+       {
+         name = "your_source_name",
+         caption = { "[color=white]Result Caption[/color]" },
+         translation = "Plain text version",
+         result = "data for handlers",
+         remote = {
+           "factory-palette.source.your_source_name",
+           "select",
+           { player_index = player.index, result = "result_data" },
+         },
+         tooltip = tooltip(),
+       },
+     }
+   end
+
+   -- Action handler for when user selects a result
+   local function select(data, modifiers)
+     local player = game.players[data.player_index]
+     if not player then
+       return
+     end
+
+     -- Handle the selection (e.g., print result, modify game state)
+     player.print({ "", { "your-mod.result-translation" }, data.result })
+     return true
+   end
+
+   -- Register the source with Factory Palette
+   remote.add_interface("factory-palette.source.your_source_name", {
+     search = search,
+     select = select,
+   })
+   ```
+
+3. **Best Practices**
+   - Validate and sanitize input queries
+   - Return empty results array when no matches are found
+   - Use clear, descriptive names for your source
+   - Implement proper error handling
+   - Follow Factorio's localization practices for tooltips and captions
+   - Test with various input scenarios
+
+For a complete example, check out the [factory-palette-calculator](https://github.com/luan/factory-palette-calculator) source code.
 
 ## Dependencies
 

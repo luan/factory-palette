@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2024-11-17
+  Features:
+    - Completely restructured extensibility API
+    - Note: check out Factory Palette: Calculator for an example
+  Bugfixes:
+    - Fix crash related to tracking gui window that happened during multiplayer
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2024-11-17
   Bugfixes:

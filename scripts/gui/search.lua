@@ -125,10 +125,6 @@ end
 function handlers.update_search_query(args, e)
   local query = e.text
 
-  if args.player_table.settings.fuzzy_search then
-    query = string.gsub(query, ".", "%1.*")
-  end
-
   -- Sanitize input
   for pattern, replacement in pairs(constants.input_sanitizers) do
     query = string.gsub(query, pattern, replacement)
@@ -136,7 +132,7 @@ function handlers.update_search_query(args, e)
 
   args.gui_data.state.query = query
   args.gui_data.state.raw_query = e.text
-  gui.perform_search(args.player, args.player_table, args.gui_data, true)
+  gui.perform_search(args.player, args.player_table, args.gui_data, true, args.player_table.settings.fuzzy_search)
 end
 
 function handlers.toggle_search_gui(args)
@@ -467,7 +463,7 @@ end
 ---@param player LuaPlayer
 ---@param player_table table
 ---@param updated_query? boolean
-function gui.perform_search(player, player_table, gui_data, updated_query)
+function gui.perform_search(player, player_table, gui_data, updated_query, fuzzy)
   local elems = gui_data.elems
   local state = gui_data.state
 
@@ -493,7 +489,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
   end
 
   -- Get results and source filter info
-  local results, filtered_sources = search.search(player, player_table, query)
+  local results, filtered_sources = search.search(player, player_table, query, fuzzy)
 
   -- Update source filter label
   if filtered_sources then

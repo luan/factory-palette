@@ -26,7 +26,11 @@ local function tooltip(result)
   }
 end
 
-local function search(player, player_table, query)
+local function search(args)
+  local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
+  if fuzzy then
+    query = string.gsub(query, ".", "%1.*")
+  end
   local settings = player_table.settings
   local translations = dictionary.get(player.index, "item")
 

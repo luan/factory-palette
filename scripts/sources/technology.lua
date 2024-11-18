@@ -66,7 +66,11 @@ local function is_current(player, prototype)
   return player.force.current_research and player.force.current_research.prototype == tech.prototype
 end
 
-local function search(player, player_table, query)
+local function search(args)
+  local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
+  if fuzzy then
+    query = string.gsub(query, ".", "%1.*")
+  end
   local i = 0
   local translations = dictionary.get(player.index, "technology")
   local results = {}

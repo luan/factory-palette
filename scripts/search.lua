@@ -23,14 +23,14 @@ local function all_sources(player_index)
       sources[name] = interface
     end
   end
-  search._sources[player_index] = sources
+  search._sources = sources
   return sources
 end
 
 -- Helper function to get matching sources based on prefix
 local function get_matching_sources(prefix, player_index)
   local matches = {}
-  local sources = all_sources(player_index)
+  local sources = all_sources()
   for name, interface in pairs(sources) do
     if starts_with(string.lower(name), string.lower(prefix)) then
       -- Only include if we actually have this source
@@ -42,7 +42,7 @@ local function get_matching_sources(prefix, player_index)
   return matches
 end
 
-function search.search(player, player_table, query)
+function search.search(player, player_table, query, fuzzy)
   local all_results = {}
 
   -- Check if query ends with just a space
@@ -70,7 +70,11 @@ function search.search(player, player_table, query)
   end
 
   for source_name, source_interface in pairs(sources_to_search) do
-    local source_results = remote.call(source_interface, "search", player, player_table, query)
+    local source_results = remote.call(
+      source_interface,
+      "search",
+      { player = player, player_table = player_table, query = query, fuzzy = fuzzy }
+    )
     for _, result in pairs(source_results) do
       result.source = source_name
     end
