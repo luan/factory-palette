@@ -68,6 +68,9 @@ end
 function Handler:with_gui_data()
   self:chain("with_gui_data", function(args, e)
     local gui_data = args.player_table.guis[self.gui_name]
+    if not gui_data then
+      return _break
+    end
     args.gui_data = gui_data
     return args
   end, { "with_player" })
