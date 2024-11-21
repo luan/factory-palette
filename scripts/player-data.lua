@@ -3,6 +3,7 @@
 ---@field guis table<string, any>
 ---@field logistic_requests FpalLogisticRequests -- TODO: move this to items source
 ---@field settings table<string, any>
+---@field enabled_sources table<string, boolean>
 
 ---@class FpalLogisticRequests
 ---@field by_index table<number, FpalLogisticRequest>
@@ -57,6 +58,7 @@ function player_data.init(player_index)
     guis = {},
     logistic_requests = { by_index = {}, by_name = {}, temporary = {} },
     settings = {},
+    enabled_sources = {},
   }
   player_data.refresh(game.get_player(player_index), storage.players[player_index])
 end

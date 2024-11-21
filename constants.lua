@@ -62,7 +62,6 @@ constants.results_limit = 50
 
 constants.settings = {
   auto_close = "fpal-auto-close-window",
-  fuzzy_search = "fpal-fuzzy-search",
   show_hidden = "fpal-show-hidden",
   spawn_items_when_cheating = "fpal-spawn-items-when-cheating",
 }

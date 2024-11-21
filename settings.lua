@@ -15,17 +15,10 @@ data:extend({
   },
   {
     type = "bool-setting",
-    name = "fpal-fuzzy-search",
-    setting_type = "runtime-per-user",
-    default_value = false,
-    order = "ae",
-  },
-  {
-    type = "bool-setting",
     name = "fpal-spawn-items-when-cheating",
     setting_type = "runtime-per-user",
     default_value = true,
-    order = "af",
+    order = "ae",
     localised_description = spawn_item_tooltip,
   },
   {
@@ -33,6 +26,6 @@ data:extend({
     name = "fpal-auto-close-window",
     setting_type = "runtime-per-user",
     default_value = false,
-    order = "ag",
+    order = "af",
   },
 })

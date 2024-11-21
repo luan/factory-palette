@@ -12,7 +12,7 @@ local function starts_with(str, prefix)
   return string.sub(str, 1, #prefix) == prefix
 end
 
-local function all_sources(player_index)
+function search.all_sources(player_index)
   if search._sources[player_index] then
     return search._sources[player_index]
   end
@@ -30,7 +30,7 @@ end
 -- Helper function to get matching sources based on prefix
 local function get_matching_sources(prefix, player_index)
   local matches = {}
-  local sources = all_sources()
+  local sources = search.all_sources(player_index)
   for name, interface in pairs(sources) do
     if starts_with(string.lower(name), string.lower(prefix)) then
       -- Only include if we actually have this source
@@ -57,7 +57,7 @@ function search.search(player, player_table, query, fuzzy)
 
   -- Check if query starts with a source prefix
   local first_word, remaining = string.match(query, "^(%S+)%s+(.+)$")
-  local sources_to_search = all_sources(player.index)
+  local sources_to_search = search.all_sources(player.index)
   local filtered_sources = nil
 
   if first_word and remaining then
@@ -68,6 +68,15 @@ function search.search(player, player_table, query, fuzzy)
       query = remaining
     end
   end
+
+  -- Filter out disabled sources
+  local enabled_sources = {}
+  for name, interface in pairs(sources_to_search) do
+    if player_table.enabled_sources[name] then
+      enabled_sources[name] = interface
+    end
+  end
+  sources_to_search = enabled_sources
 
   for source_name, source_interface in pairs(sources_to_search) do
     local source_results = remote.call(

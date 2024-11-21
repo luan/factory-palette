@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+Date: 2024-11-21
+  Features:
+    - Added collapsible side panel to filter search sources
+    - Added ability to enable/disable individual search sources
+    - Search results now update live when toggling sources
+    - Added button to toggle side panel visibility
+    - Moved fuzzy search option from settings to side panel
+  Changes:
+    - Removed fuzzy search from mod settings
+---------------------------------------------------------------------------------------------------
 Version: 0.4.3
 Date: 2024-11-20
   Bugfixes:

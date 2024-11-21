@@ -56,6 +56,11 @@ function handlers.on_close(args)
   gui.close(args.player, args.player_table)
 end
 
+function handlers.toggle_sidebar(args, e)
+  local gui_data = args.gui_data
+  gui_data.elems.sidebar.visible = not gui_data.elems.sidebar.visible
+end
+
 function handlers.on_tick()
   if next(storage.update_search_results) then
     gui.update_for_active_players()
@@ -132,7 +137,7 @@ function handlers.update_search_query(args, e)
 
   args.gui_data.state.query = query
   args.gui_data.state.raw_query = e.text
-  gui.perform_search(args.player, args.player_table, args.gui_data, true, args.player_table.settings.fuzzy_search)
+  gui.perform_search(args.player, args.player_table, args.gui_data, true)
 end
 
 function handlers.toggle_search_gui(args)
@@ -168,6 +173,21 @@ function handlers.reopen_after_subwindow(args)
 
   storage.update_search_results[player.index] = true
 end
+
+-- Update source visibility when checkbox is clicked
+function handlers.toggle_source(args, e)
+  local player_table = args.player_table
+  local source_name = e.element.tags.source_name
+  player_table.enabled_sources[source_name] = e.element.state
+  gui.perform_search(args.player, args.player_table, args.gui_data)
+end
+
+function handlers.toggle_fuzzy_search(args, e)
+  local gui_data = args.gui_data
+  gui_data.state.fuzzy_search = e.element.state
+  gui.perform_search(args.player, args.player_table, gui_data)
+end
+
 ---@param results_table LuaGuiElement
 function gui.clear_results(results_table)
   results_table.clear()
@@ -264,124 +284,173 @@ function gui.build(player, player_table)
       name = "window_dimmer",
       type = "frame",
       style = "fpal_window_dimmer",
-      style_mods = { size = { 478, 390 } },
+      style_mods = { size = { 578, 390 } },
       visible = false,
     },
     -- Main window
     {
       name = "window",
       type = "frame",
-      direction = "vertical",
+      style = "invisible_frame",
+      direction = "horizontal",
       visible = false,
       elem_mods = { auto_center = true },
       handler = {
         [defines.events.on_gui_closed] = handlers.on_close,
         [defines.events.on_gui_location_changed] = handlers.relocate_dimmer,
       },
-      -- Titlebar
       {
-        type = "flow",
-        {
-          name = "titlebar_flow",
-          type = "flow",
-          style = "fpal_titlebar_flow",
-          drag_target = "window",
-          handler = handlers.recenter,
-          -- Search field
-          {
-            name = "search_textfield",
-            type = "textfield",
-            style = "fpal_disablable_textfield",
-            style_mods = { width = 420 },
-            clear_and_focus_on_right_click = true,
-            lose_focus_on_confirm = true,
-            handler = {
-              [defines.events.on_gui_confirmed] = handlers.enter_result_selection,
-              [defines.events.on_gui_text_changed] = handlers.update_search_query,
-            },
-          },
-          {
-            type = "sprite-button",
-            style = "fpal_close_button",
-            sprite = "utility/close",
-            hovered_sprite = "utility/close",
-            clicked_sprite = "utility/close",
-            handler = handlers.on_close,
-          },
-        },
-      },
-      {
-        type = "line",
-        style = "fpal_titlebar_separator_line",
-        ignored_by_interaction = true,
-      },
-      -- Main content frame
-      {
-        type = "flow",
-        style_mods = { top_padding = -2, vertically_stretchable = true },
+        type = "frame",
         direction = "vertical",
-        drag_target = "window",
-        -- Source filter label
+        -- Titlebar
         {
-          name = "source_filter",
-          type = "frame",
-          style = "filter_frame",
-          style_mods = {
-            top_padding = -5,
-            right_padding = 4,
-            left_margin = -12,
-            right_margin = -12,
-            bottom_margin = 0,
-            top_margin = -4,
-            height = 20,
-            horizontally_stretchable = true,
-          },
-          visible = false,
+          type = "flow",
           {
-            type = "label",
-            caption = {
-              "",
-              "[font=default-small-semibold]",
-              { "gui.fpal-filtered-sources" },
-              "[/font]",
+            name = "titlebar_flow",
+            type = "flow",
+            style = "fpal_titlebar_flow",
+            drag_target = "window",
+            handler = handlers.recenter,
+            -- Search field
+            {
+              name = "search_textfield",
+              type = "textfield",
+              style = "fpal_disablable_textfield",
+              style_mods = { width = 420 },
+              clear_and_focus_on_right_click = true,
+              lose_focus_on_confirm = true,
+              handler = {
+                [defines.events.on_gui_confirmed] = handlers.enter_result_selection,
+                [defines.events.on_gui_text_changed] = handlers.update_search_query,
+              },
             },
-          },
-          {
-            name = "source_filter_label",
-            type = "label",
-          },
-        },
-        -- Warning header
-        {
-          name = "warning_subheader",
-          type = "frame",
-          style = "negative_subheader_frame",
-          style_mods = { left_padding = 12, height = 28, horizontally_stretchable = true },
-          visible = false,
-          {
-            type = "label",
-            style = "bold_label",
-            caption = {
-              "",
-              "[img=utility/warning]  ",
-              { "gui.fpal-not-connected-to-logistic-network" },
+            {
+              type = "sprite-button",
+              style = "fpal_close_button",
+              sprite = "utility/close",
+              hovered_sprite = "utility/close",
+              clicked_sprite = "utility/close",
+              handler = handlers.on_close,
+            },
+            {
+              name = "sidebar_button",
+              type = "sprite-button",
+              style = "fpal_close_button",
+              sprite = "utility/mod_category",
+              auto_toggle = true,
+              handler = handlers.toggle_sidebar,
             },
           },
         },
-        -- Results scroll pane
         {
-          name = "results_scroll_pane",
-          type = "scroll-pane",
-          style = "fpal_list_box_scroll_pane",
-          style_mods = { vertically_stretchable = true, bottom_padding = 2, maximal_height = 28 * 10 },
-          visible = true,
+          type = "line",
+          style = "fpal_titlebar_separator_line",
+          ignored_by_interaction = true,
+        },
+        -- Main content frame
+        {
+          type = "flow",
+          style_mods = { top_padding = -2, vertically_stretchable = true },
+          direction = "vertical",
+          drag_target = "window",
+          -- Source filter label
           {
-            name = "results_table",
-            type = "table",
-            style_mods = { top_margin = 4 },
-            style = "fpal_list_box_table",
-            column_count = tbl.columns,
+            name = "source_filter",
+            type = "frame",
+            style = "filter_frame",
+            style_mods = {
+              top_padding = -5,
+              right_padding = 4,
+              left_margin = -12,
+              right_margin = -12,
+              bottom_margin = 0,
+              top_margin = -4,
+              height = 20,
+              horizontally_stretchable = true,
+            },
+            visible = false,
+            {
+              type = "label",
+              caption = {
+                "",
+                "[font=default-small-semibold]",
+                { "gui.fpal-filtered-sources" },
+                "[/font]",
+              },
+            },
+            {
+              name = "source_filter_label",
+              type = "label",
+            },
           },
+          -- Warning header
+          {
+            name = "warning_subheader",
+            type = "frame",
+            style = "negative_subheader_frame",
+            style_mods = { left_padding = 12, height = 28, horizontally_stretchable = true },
+            visible = false,
+            {
+              type = "label",
+              style = "bold_label",
+              caption = {
+                "",
+                "[img=utility/warning]  ",
+                { "gui.fpal-not-connected-to-logistic-network" },
+              },
+            },
+          },
+          -- Results scroll pane
+          {
+            name = "results_scroll_pane",
+            type = "scroll-pane",
+            style = "fpal_list_box_scroll_pane",
+            style_mods = { vertically_stretchable = true, bottom_padding = 2, maximal_height = 28 * 10 },
+            visible = true,
+            {
+              name = "results_table",
+              type = "table",
+              style_mods = { top_margin = 4 },
+              style = "fpal_list_box_table",
+              column_count = tbl.columns,
+            },
+          },
+        },
+      },
+      -- Source selection
+      {
+        name = "sidebar",
+        type = "frame",
+        visible = false,
+        direction = "vertical",
+        style_mods = { width = 160, padding = 4 },
+        {
+          type = "label",
+          caption = { "", "[font=default-bold]", { "gui.fpal-configure" }, "[/font]" },
+          style_mods = { bottom_margin = 4 },
+        },
+        {
+          type = "checkbox",
+          name = "fuzzy_search",
+          caption = { "gui.fpal-fuzzy-search" },
+          tooltip = { "gui.fpal-fuzzy-search-description" },
+          state = false,
+          handler = { [defines.events.on_gui_checked_state_changed] = handlers.toggle_fuzzy_search },
+        },
+        {
+          type = "line",
+          style_mods = { margin = 4 },
+        },
+        {
+          type = "label",
+          caption = { "", "[font=default-bold]", { "gui.fpal-sources" }, "[/font]" },
+          style_mods = { bottom_margin = 4 },
+        },
+        {
+          name = "sources_flow",
+          type = "flow",
+          direction = "vertical",
+          style_mods = { vertical_spacing = 2 },
         },
       },
     },
@@ -396,8 +465,40 @@ function gui.build(player, player_table)
       selected_index = 1,
       subwindow_open = false,
       visible = false,
+      fuzzy_search = false,
     },
   }
+  -- Populate source checkboxes
+  gui.populate_sources(player, player_table, player_table.guis.search)
+end
+
+-- Populate sources checkboxes
+function gui.populate_sources(player, player_table, gui_data)
+  local sources_flow = gui_data.elems.sources_flow
+  sources_flow.clear()
+
+  -- Get all available sources
+  local sources = search.all_sources(player.index)
+
+  -- Initialize enabled_sources if empty
+  if not next(player_table.enabled_sources) then
+    for name, _ in pairs(sources) do
+      player_table.enabled_sources[name] = true
+    end
+  end
+
+  -- Create checkbox for each source
+  for name, _ in pairs(sources) do
+    flib_gui.add(sources_flow, {
+      {
+        type = "checkbox",
+        state = player_table.enabled_sources[name],
+        caption = { "factory-palette.source." .. name .. ".name" },
+        tags = { source_name = name },
+        handler = { [defines.events.on_gui_checked_state_changed] = handlers.toggle_source },
+      },
+    })
+  end
 end
 
 function gui.destroy(player_table)
@@ -463,7 +564,7 @@ end
 ---@param player LuaPlayer
 ---@param player_table table
 ---@param updated_query? boolean
-function gui.perform_search(player, player_table, gui_data, updated_query, fuzzy)
+function gui.perform_search(player, player_table, gui_data, updated_query)
   local elems = gui_data.elems
   local state = gui_data.state
 
@@ -489,7 +590,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query, fuzzy
   end
 
   -- Get results and source filter info
-  local results, filtered_sources = search.search(player, player_table, query, fuzzy)
+  local results, filtered_sources = search.search(player, player_table, query, state.fuzzy_search)
 
   -- Update source filter label
   if filtered_sources then
@@ -565,7 +666,11 @@ gui.events = {
   ["fpal-search"] = h():chain(handlers.toggle_search_gui),
   ["fpal-control-confirm"] = h():with_param("control", true):with_gui_check():chain(handlers.select_entry),
   ["fpal-shift-confirm"] = h():with_param("shift", true):with_gui_check():chain(handlers.select_entry),
-  ["fpal-control-shift-confirm"] = h():with_param("control", true):with_param("shift", true):with_gui_check():chain(handlers.select_entry),
+  ["fpal-control-shift-confirm"] = h()
+    :with_param("control", true)
+    :with_param("shift", true)
+    :with_gui_check()
+    :chain(handlers.select_entry),
   ["fpal-confirm"] = h():with_param("confirm", true):with_gui_check():chain(handlers.select_entry),
   [events.reopen_after_subwindow] = h():chain(handlers.reopen_after_subwindow),
   [defines.events.on_lua_shortcut] = h()
@@ -577,6 +682,5 @@ gui.events = {
 flib_gui.add_handlers(handlers, function(e, handler)
   h():chain(handler)(e)
 end, "search")
-
 
 return gui
