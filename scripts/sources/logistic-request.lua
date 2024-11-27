@@ -84,7 +84,7 @@ function logistic_request.update_temporaries(args)
     local name = filter.value.name
     local has_count = combined_contents[name] or 0
     -- if the request has been satisfied
-    if has_count >= filter.min and has_count <= filter.max then
+    if filter.min and has_count >= filter.min and (not filter.max or has_count <= filter.max) then
       -- clear the temporary request data first to avoid setting the slot twice
       temporary_section.clear_slot(index)
     end
