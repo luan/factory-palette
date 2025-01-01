@@ -68,14 +68,11 @@ end
 
 local function search(args)
   local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
-  if fuzzy then
-    query = string.gsub(query, ".", "%1.*")
-  end
   local i = 0
   local translations = dictionary.get(player.index, "technology")
   local results = {}
   for name, translation in pairs(translations) do
-    if string.find(string.lower(translation), query) then
+    if remote.call("factory-palette.filter", "filter", translation, query, fuzzy) then
       local technology = get_technology(player, prototypes.technology[name])
       if technology then
         local current = is_current(player, technology)

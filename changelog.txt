@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.2
+Date: 2025-01-01
+  Bugfixes:
+    - Add prefix to UI elements to avoid conflicts with other mods
+    - Fix crash when searching for items with fuzzy search
+---------------------------------------------------------------------------------------------------
 Version: 0.5.1
 Date: 2024-11-26
   Bugfixes:

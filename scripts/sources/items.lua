@@ -28,9 +28,6 @@ end
 
 local function search(args)
   local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
-  if fuzzy then
-    query = string.gsub(query, ".", "%1.*")
-  end
   local settings = player_table.settings
   local translations = dictionary.get(player.index, "item")
 
@@ -89,7 +86,7 @@ local function search(args)
   -- perform search
   local i = 0
   for name, translation in pairs(translations) do
-    if string.find(string.lower(translation), query) then
+    if remote.call("factory-palette.filter", "filter", translation, query, fuzzy) then
       local hidden = false -- item_prototypes[name].has_flag("hidden")
       if show_hidden or not hidden then
         local inventory_count = contents.inventory[name] or 0
@@ -213,8 +210,8 @@ local function set_logistic_request(player, result)
   if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
     state.subwindow_open = true
     elems.search_textfield.enabled = false
-    elems.window_dimmer.visible = true
-    elems.window_dimmer.bring_to_front()
+    elems.fpal_window_dimmer.visible = true
+    elems.fpal_window_dimmer.bring_to_front()
 
     if player_controller == defines.controllers.character then
       logistic_request_gui.open(player, player_table, result)

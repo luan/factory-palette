@@ -86,13 +86,13 @@ end
 function handlers.recenter(args, e)
   local player_table = args.player_table
   if e.button == defines.mouse_button_type.middle then
-    player_table.guis.search.elems.window.force_auto_center()
+    player_table.guis.search.elems.fpal_window.force_auto_center()
   end
 end
 
 function handlers.relocate_dimmer(args)
   local gui_data = args.gui_data
-  gui_data.elems.window_dimmer.location = gui_data.elems.window.location
+  gui_data.elems.fpal_window_dimmer.location = gui_data.elems.fpal_window.location
 end
 
 function handlers.update_selected_index(args)
@@ -160,7 +160,7 @@ function handlers.reopen_after_subwindow(args)
   local state = gui_data.state
 
   elems.search_textfield.enabled = true
-  elems.window_dimmer.visible = false
+  elems.fpal_window_dimmer.visible = false
   state.subwindow_open = false
 
   gui.perform_search(player, player_table, gui_data)
@@ -168,7 +168,7 @@ function handlers.reopen_after_subwindow(args)
   if player_table.settings.auto_close and player_table.confirmed_tick == game.ticks_played then
     gui.close(player, player_table)
   else
-    player.opened = gui_data.elems.window
+    player.opened = gui_data.elems.fpal_window
   end
 
   storage.update_search_results[player.index] = true
@@ -268,11 +268,11 @@ end
 
 function gui.build(player, player_table)
   -- Clean up orphaned elements
-  local orphaned_dimmer = player.gui.screen.window_dimmer
+  local orphaned_dimmer = player.gui.screen.fpal_window_dimmer
   if orphaned_dimmer and orphaned_dimmer.valid then
     orphaned_dimmer.destroy()
   end
-  local orphaned_window = player.gui.screen.window
+  local orphaned_window = player.gui.screen.fpal_window
   if orphaned_window and orphaned_window.valid then
     orphaned_window.destroy()
   end
@@ -281,7 +281,7 @@ function gui.build(player, player_table)
   local elems = flib_gui.add(player.gui.screen, {
     -- Dimmer frame
     {
-      name = "window_dimmer",
+      name = "fpal_window_dimmer",
       type = "frame",
       style = "fpal_window_dimmer",
       style_mods = { size = { 578, 390 } },
@@ -289,7 +289,7 @@ function gui.build(player, player_table)
     },
     -- Main window
     {
-      name = "window",
+      name = "fpal_window",
       type = "frame",
       style = "invisible_frame",
       direction = "horizontal",
@@ -309,7 +309,7 @@ function gui.build(player, player_table)
             name = "titlebar_flow",
             type = "flow",
             style = "fpal_titlebar_flow",
-            drag_target = "window",
+            drag_target = "fpal_window",
             handler = handlers.recenter,
             -- Search field
             {
@@ -352,7 +352,7 @@ function gui.build(player, player_table)
           type = "flow",
           style_mods = { top_padding = -2, vertically_stretchable = true },
           direction = "vertical",
-          drag_target = "window",
+          drag_target = "fpal_window",
           -- Source filter label
           {
             name = "source_filter",
@@ -506,10 +506,10 @@ function gui.destroy(player_table)
   if not gui_data then
     return
   end
-  if not gui_data.elems.window or not gui_data.elems.window.valid then
+  if not gui_data.elems.fpal_window or not gui_data.elems.fpal_window.valid then
     return
   end
-  gui_data.elems.window.destroy()
+  gui_data.elems.fpal_window.destroy()
   player_table.guis.search = nil
 end
 
@@ -517,10 +517,10 @@ function gui.open(player, player_table)
   gui.destroy(player_table)
   gui.build(player, player_table)
   local gui_data = player_table.guis.search
-  gui_data.elems.window.visible = true
+  gui_data.elems.fpal_window.visible = true
   gui_data.state.visible = true
   player.set_shortcut_toggled("fpal-search", true)
-  player.opened = gui_data.elems.window
+  player.opened = gui_data.elems.fpal_window
 
   gui_data.elems.search_textfield.focus()
   gui_data.elems.search_textfield.select_all()
@@ -537,12 +537,12 @@ function gui.close(player, player_table, force_close)
   local state = gui_data.state
 
   if not force_close and state.selected_item_tick == game.ticks_played then
-    player.opened = elems.window
+    player.opened = elems.fpal_window
   elseif force_close or not state.subwindow_open then
-    elems.window.visible = false
+    elems.fpal_window.visible = false
     state.visible = false
     player.set_shortcut_toggled("fpal-search", false)
-    if player.opened == elems.window then
+    if player.opened == elems.fpal_window then
       player.opened = nil
     end
   end
@@ -588,8 +588,6 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
     elems.source_filter.visible = false
     return
   end
-
-  -- Get results and source filter info
   local results, filtered_sources = search.search(player, player_table, query, state.fuzzy_search)
 
   -- Update source filter label
@@ -615,7 +613,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
 
   local visible_rows = math.min(#results, constants.max_visible_rows)
   elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6
-  elems.window_dimmer.style.height = constants.row_height * visible_rows + 6 + 64
+  elems.fpal_window_dimmer.style.height = constants.row_height * visible_rows + 6 + 64
 
   state.results = results
 end

@@ -18,7 +18,7 @@ end
 
 function handlers.recenter(args, e)
   if e.button == defines.mouse_button_type.middle then
-    args.gui_data.elems.window.force_auto_center()
+    args.gui_data.elems.fpal_window.force_auto_center()
   end
 end
 
@@ -356,7 +356,7 @@ function logistic_request_gui.close(player, player_table)
   gui_data.elems.fpal_request_focus_frame.visible = false
   gui_data.elems.fpal_request_window.visible = false
   if not player.opened then
-    player.opened = player_table.guis.search.elems.window
+    player.opened = player_table.guis.search.elems.fpal_window
   end
 end
 
