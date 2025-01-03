@@ -179,12 +179,14 @@ function handlers.toggle_source(args, e)
   local player_table = args.player_table
   local source_name = e.element.tags.source_name
   player_table.enabled_sources[source_name] = e.element.state
+  args.update_gui_data(args.gui_data)
   gui.perform_search(args.player, args.player_table, args.gui_data)
 end
 
 function handlers.toggle_fuzzy_search(args, e)
   local gui_data = args.gui_data
   gui_data.state.fuzzy_search = e.element.state
+  args.update_gui_data(gui_data)
   gui.perform_search(args.player, args.player_table, gui_data)
 end
 

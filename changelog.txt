@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.3
+Date: 2025-01-03
+  Bugfixes:
+    - Fix search results not updating when fuzzy search is disabled
+    - Fix preferences not being saved
+---------------------------------------------------------------------------------------------------
 Version: 0.5.2
 Date: 2025-01-01
   Bugfixes:

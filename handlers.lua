@@ -72,6 +72,11 @@ function Handler:with_gui_data()
       return _break
     end
     args.gui_data = gui_data
+    args.update_gui_data = function(new_gui_data)
+      local new_player_table = args.player_table
+      new_player_table.guis[self.gui_name] = new_gui_data
+      args.update_player_table(new_player_table)
+    end
     return args
   end, { "with_player" })
   return self
@@ -93,6 +98,9 @@ function Handler:with_player()
     if player_table then
       args.player = player
       args.player_table = player_table
+      args.update_player_table = function(new_player_table)
+        storage.players[e.player_index] = new_player_table
+      end
       return args
     end
     return _break

@@ -25,7 +25,7 @@ remote.add_interface("factory-palette.filter", {
     if fuzzy then
       return fzy.has_match(needle, haystack, false)
     else
-      return string.find(haystack, needle, 1, true)
+      return string.find(string.lower(haystack), string.lower(needle), 1, true)
     end
   end,
 })
