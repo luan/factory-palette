@@ -92,6 +92,9 @@ end
 
 function handlers.relocate_dimmer(args)
   local gui_data = args.gui_data
+  if not gui_data.elems.fpal_window_dimmer or not gui_data.elems.fpal_window_dimmer.valid then
+    return
+  end
   gui_data.elems.fpal_window_dimmer.location = gui_data.elems.fpal_window.location
 end
 
