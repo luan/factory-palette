@@ -500,7 +500,7 @@ function gui.populate_sources(player, player_table, gui_data)
     flib_gui.add(sources_flow, {
       {
         type = "checkbox",
-        state = player_table.enabled_sources[name],
+        state = player_table.enabled_sources[name] or false,
         caption = { "factory-palette.source." .. name .. ".name" },
         tags = { source_name = name },
         handler = { [defines.events.on_gui_checked_state_changed] = handlers.toggle_source },

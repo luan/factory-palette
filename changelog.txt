@@ -3,6 +3,7 @@ Version: 0.6.0
 Date: 2025-05-17
   Features:
     - Add alt + click to open in Factoriopedia
+    - Fix crash when loading game with disabled sources
 ---------------------------------------------------------------------------------------------------
 Version: 0.5.7
 Date: 2025-05-17
