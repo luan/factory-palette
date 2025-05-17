@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.6
+Date: 2025-05-16
+  Features:
+    - Fix crash when clearing logistics request
+    - Fix auto close setting not being respected
+---------------------------------------------------------------------------------------------------
 Version: 0.5.5
 Date: 2025-01-05
   Bugfixes:

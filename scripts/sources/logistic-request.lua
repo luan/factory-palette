@@ -49,7 +49,12 @@ function logistic_request.clear(player, name)
   if not section then
     return
   end
-  section.clear_slot(request_data.index)
+  for i, filter in ipairs(section.filters) do
+    if filter.value and filter.value.name == name then
+      section.clear_slot(i)
+      break
+    end
+  end
 end
 
 ---@param player LuaPlayer

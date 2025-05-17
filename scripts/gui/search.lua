@@ -642,6 +642,9 @@ function gui.select_entry(player, player_table, modifiers, index)
   if type(result.remote) == "table" then
     if remote.call(result.remote[1], result.remote[2], result.remote[3], modifiers) then
       player.play_sound({ path = "utility/confirm" })
+      if player_table.settings.auto_close then
+        gui.close(player, player_table)
+      end
     else
       player.play_sound({ path = "utility/cannot_build" })
     end
