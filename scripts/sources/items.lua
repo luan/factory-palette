@@ -259,8 +259,34 @@ local function open_in_factoriopedia(player, result)
   if not recipe then
     return false
   end
+  remote.call(
+    "factory-search",
+    "search",
+    { player = player, search_value = {
+      type = "item",
+      name = recipe.prototype.name,
+    } }
+  )
 
   player.open_factoriopedia_gui(recipe.prototype)
+  return true
+end
+
+---@param player LuaPlayer
+---@param result Result
+local function open_in_factory_search(player, result)
+  local player_table = storage.players[player.index]
+  if not player_table then
+    return
+  end
+  local recipe = player.force.recipes[result.name]
+  if not recipe then
+    return
+  end
+  remote.call("factory-search", "search", player, {
+    type = "item",
+    name = recipe.prototype.name,
+  })
   return true
 end
 
@@ -277,6 +303,8 @@ local function select(data, modifiers)
 
   if modifiers.control and modifiers.shift then
     return craft(player, result, 10)
+  elseif modifiers.alt and modifiers.shift and remote.interfaces["factory-search"] then
+    return open_in_factory_search(player, result)
   elseif modifiers.control then
     return craft(player, result, 5)
   elseif modifiers.shift then

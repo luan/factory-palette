@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.7.0
+Date: 2025-05-17
+  Features:
+    - Add alt + shift + click to open in Factory Search (if Factory Search is installed)
+    - Add Factory Search as a _optional_ dependency
+---------------------------------------------------------------------------------------------------
 Version: 0.6.0
 Date: 2025-05-17
   Features:

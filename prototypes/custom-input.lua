@@ -58,5 +58,12 @@ data:extend({
     name = "fpal-alt-confirm",
     key_sequence = "ALT + E",
     alternative_key_sequence = "ALT + ENTER",
+    order = "h",
+  },
+  {
+    type = "custom-input",
+    name = "fpal-alt-shift-confirm",
+    key_sequence = "SHIFT + ALT + E",
+    alternative_key_sequence = "SHIFT + ALT + ENTER",
   },
 })
