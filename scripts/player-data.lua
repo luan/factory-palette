@@ -129,6 +129,14 @@ local on_player_inventory_changed = function(e)
   end
 end
 
+local function on_runtime_mod_setting_changed(e)
+  local player = game.get_player(e.player_index)
+  if not player then
+    return
+  end
+  player_data.update_settings(player, storage.players[e.player_index])
+end
+
 function init_player(e)
   player_data.init(e.player_index)
 end
@@ -147,6 +155,7 @@ player_data.events = {
   [defines.events.on_player_armor_inventory_changed] = on_player_inventory_changed,
   [defines.events.on_player_gun_inventory_changed] = on_player_inventory_changed,
   [defines.events.on_player_main_inventory_changed] = on_player_inventory_changed,
+  [defines.events.on_runtime_mod_setting_changed] = on_runtime_mod_setting_changed,
 }
 
 -- @export
