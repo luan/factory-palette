@@ -259,15 +259,6 @@ local function open_in_factoriopedia(player, result)
   if not recipe then
     return false
   end
-  remote.call(
-    "factory-search",
-    "search",
-    { player = player, search_value = {
-      type = "item",
-      name = recipe.prototype.name,
-    } }
-  )
-
   player.open_factoriopedia_gui(recipe.prototype)
   return true
 end
