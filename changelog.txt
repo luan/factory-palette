@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.5.7
+Date: 2025-05-17
+  Bugfixes:
+    - Fix auto close setting not being respected
+    - Fix crash when attempting to craft uncraftable items
+---------------------------------------------------------------------------------------------------
 Version: 0.5.6
 Date: 2025-05-16
   Features:
