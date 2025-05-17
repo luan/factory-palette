@@ -23,6 +23,10 @@ local function tooltip(result)
     { "gui.fpal-control-shift-click-tooltip" },
     " ",
     { "factory-palette.source.items.craft-many" },
+    "\n",
+    { "gui.fpal-alt-click-tooltip" },
+    " ",
+    { "factory-palette.source.items.open-in-factoriopedia" },
   }
 end
 
@@ -244,6 +248,22 @@ local function set_in_cursor(player, result)
   end
 end
 
+---@param player LuaPlayer
+---@param result Result
+local function open_in_factoriopedia(player, result)
+  local player_table = storage.players[player.index]
+  if not player_table then
+    return
+  end
+  local recipe = player.force.recipes[result.name]
+  if not recipe then
+    return false
+  end
+
+  player.open_factoriopedia_gui(recipe.prototype)
+  return true
+end
+
 local function select(data, modifiers)
   local player = game.players[data.player_index]
   if not player then
@@ -261,6 +281,8 @@ local function select(data, modifiers)
     return craft(player, result, 5)
   elseif modifiers.shift then
     return set_logistic_request(player, result)
+  elseif modifiers.alt then
+    return open_in_factoriopedia(player, result)
   end
 
   return set_in_cursor(player, result)

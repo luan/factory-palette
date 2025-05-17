@@ -74,6 +74,9 @@ function handlers.select_entry(args, e)
   if e.control then
     args.control = true
   end
+  if e.alt then
+    args.alt = true
+  end
   local player, player_table = args.player, args.player_table
   local index = nil
   if e.element and e.element.tags and e.element.tags.index then
@@ -672,6 +675,7 @@ gui.events = {
   ["fpal-search"] = h():chain(handlers.toggle_search_gui),
   ["fpal-control-confirm"] = h():with_param("control", true):with_gui_check():chain(handlers.select_entry),
   ["fpal-shift-confirm"] = h():with_param("shift", true):with_gui_check():chain(handlers.select_entry),
+  ["fpal-alt-confirm"] = h():with_param("alt", true):with_gui_check():chain(handlers.select_entry),
   ["fpal-control-shift-confirm"] = h()
     :with_param("control", true)
     :with_param("shift", true)
