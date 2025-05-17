@@ -191,6 +191,10 @@ local function craft(player, result, count)
     return
   end
 
+  if recipe.prototype.hidden_from_player_crafting then
+    return
+  end
+
   local crafting_count = player.begin_crafting({ count = count, recipe = recipe })
   return crafting_count == count
 end
