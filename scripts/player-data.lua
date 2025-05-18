@@ -91,6 +91,10 @@ function player_data.refresh(player, player_table)
 end
 
 function player_data.update_settings(player, player_table)
+  if not player or not player_table then
+    return
+  end
+
   local player_settings = player.mod_settings
   local settings = {}
 
@@ -130,6 +134,9 @@ local on_player_inventory_changed = function(e)
 end
 
 local function on_runtime_mod_setting_changed(e)
+  if string.sub(e.setting, 1, 4) ~= "fpal-" or not e.player_index then
+    return
+  end
   local player = game.get_player(e.player_index)
   if not player then
     return
