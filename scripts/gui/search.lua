@@ -108,6 +108,9 @@ function handlers.update_selected_index(args)
   local results_table = elems.results_table
   local selected_index = state.selected_index
   local row = tbl.get_row(results_table, selected_index)
+  if not row then
+    return
+  end
   row[1].style.font_color = constants.colors.normal
   local new_selected_index = math.clamp(selected_index + offset, 1, tbl.count(results_table))
   state.selected_index = new_selected_index
