@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.7.4
+Date: 2025-08-16
+  Bugfixes:
+    - Resolve Lua diagnostics and prevent runtime errors in search GUI
+    - Fix table row indexing and function parameter mismatches
+    - Add nil checks and early returns to avoid crashes
+    - Remove unused imports and ensure safe remote.call modifiers
+---------------------------------------------------------------------------------------------------
+Version: 0.7.3
+Date: 2025-08-16
+  Features:
+    - Add Japanese translation
+  Bugfixes:
+    - Minor stability fixes
+---------------------------------------------------------------------------------------------------
 Version: 0.7.2
 Date: 2025-05-17
   Bugfixes:
