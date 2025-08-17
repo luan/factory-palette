@@ -5,7 +5,6 @@ local events = require("events")
 local constants = require("constants")
 local h = require("handlers").for_gui("search")
 
-local cursor = require("scripts.cursor")
 local search = require("scripts.search")
 
 ---@class SearchGuiState
@@ -41,7 +40,7 @@ end
 
 function tbl.set_row(t, index, row)
   for i = 1, tbl.columns do
-    t.children[i] = row[i + (index - 1) * tbl.columns]
+    t.children[i + (index - 1) * tbl.columns] = row[i]
   end
 end
 
@@ -56,7 +55,7 @@ function handlers.on_close(args)
   gui.close(args.player, args.player_table)
 end
 
-function handlers.toggle_sidebar(args, e)
+function handlers.toggle_sidebar(args)
   local gui_data = args.gui_data
   gui_data.elems.sidebar.visible = not gui_data.elems.sidebar.visible
 end
@@ -115,12 +114,14 @@ function handlers.update_selected_index(args)
   local new_selected_index = math.clamp(selected_index + offset, 1, tbl.count(results_table))
   state.selected_index = new_selected_index
   row = tbl.get_row(results_table, new_selected_index)
-  row[1].style.font_color = constants.colors.hovered
-  elems.results_scroll_pane.scroll_to_element(row[1], "top-third")
+  if row and row[1] then
+    row[1].style.font_color = constants.colors.hovered
+    elems.results_scroll_pane.scroll_to_element(row[1], "top-third")
+  end
 end
 
 function handlers.enter_result_selection(args)
-  local player, player_table = args.player, args.player_table
+  local player_table = args.player_table
   local gui_data = player_table.guis.search
   local elems = gui_data.elems
   local state = gui_data.state
@@ -204,15 +205,12 @@ function gui.clear_results(results_table)
   results_table.clear()
 end
 
----@param player LuaPlayer
 ---@param player_table table
 ---@param results table[]
-function gui.update_results_table(player, player_table, results)
+function gui.update_results_table(player_table, results)
   local gui_data = player_table.guis.search
   local elems = gui_data.elems
   local results_table = elems.results_table
-  local children = results_table.children
-
   local i = 0
   for _, row in ipairs(results) do
     i = i + 1
@@ -233,25 +231,36 @@ function gui.update_results_table(player, player_table, results)
         { type = "label" },
         { type = "label" },
       })
-      -- update our copy of the table
-      children = results_table.children
       result = tbl.get_row(results_table, i)
+      if not result then
+        goto continue
+      end
     end
 
     -- clear existing caption
     for j = 1, #result do
-      result[j].caption = ""
+      if result[j] then
+        result[j].caption = ""
+      end
     end
 
     local hidden_abbrev = row.hidden and "[font=default-semibold](H)[/font]  " or ""
-    for j = 1, #row.caption do
-      result[j].caption = hidden_abbrev .. row.caption[j]
-      result[j].tooltip = row.tooltip
+    if row.caption then
+      for j = 1, #row.caption do
+        if result[j] then
+          result[j].caption = hidden_abbrev .. row.caption[j]
+          result[j].tooltip = row.tooltip
+        end
+      end
     end
 
-    result[4].caption =
-      { "", "[font=default-small-bold]", { "factory-palette.source." .. row.source .. ".name" }, "[/font]" }
-    result[4].style.font_color = constants.colors.muted
+    if result[4] then
+      result[4].caption =
+        { "", "[font=default-small-bold]", { "factory-palette.source." .. row.source .. ".name" }, "[/font]" }
+      result[4].style.font_color = constants.colors.muted
+    end
+
+    ::continue::
   end
   -- destroy extraneous rows
   for j = tbl.count(results_table), i + 1, -1 do
@@ -544,6 +553,9 @@ end
 
 function gui.close(player, player_table, force_close)
   local gui_data = player_table.guis.search
+  if not gui_data then
+    return
+  end
   local elems = gui_data.elems
   local state = gui_data.state
 
@@ -586,7 +598,9 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
   local results_count = tbl.count(results_table)
   if updated_query and results_count > 0 then
     local row = tbl.get_row(results_table, state.selected_index)
-    row[1].style.font_color = constants.colors.normal
+    if row and row[1] then
+      row[1].style.font_color = constants.colors.normal
+    end
     elems.results_scroll_pane.scroll_to_top()
     state.selected_index = 1
   end
@@ -620,7 +634,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
     elems.source_filter.visible = false
   end
 
-  gui.update_results_table(player, player_table, results)
+  gui.update_results_table(player_table, results)
 
   local visible_rows = math.min(#results, constants.max_visible_rows)
   elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6
@@ -631,7 +645,6 @@ end
 
 function gui.select_entry(player, player_table, modifiers, index)
   local gui_data = player_table.guis.search
-  local elems = gui_data.elems
   local state = gui_data.state
 
   local i = index or state.selected_index
@@ -645,8 +658,17 @@ function gui.select_entry(player, player_table, modifiers, index)
     return
   end
 
-  if type(result.remote) == "table" then
-    if remote.call(result.remote[1], result.remote[2], result.remote[3], modifiers) then
+  if type(result.remote) == "table" and result.remote[1] and result.remote[2] and result.remote[3] then
+    local clean_modifiers = {}
+    if modifiers then
+      clean_modifiers = {
+        shift = modifiers.shift,
+        control = modifiers.control,
+        alt = modifiers.alt,
+        confirm = modifiers.confirm
+      }
+    end
+    if remote.call(result.remote[1], result.remote[2], result.remote[3], clean_modifiers) then
       player.play_sound({ path = "utility/confirm" })
       if player_table.settings.auto_close then
         gui.close(player, player_table)
@@ -666,7 +688,9 @@ function gui.update_for_active_players()
     if gui_data then
       local state = gui_data.state
       if tick - state.last_search_update > 120 then
-        gui.perform_search(player, player_table, gui_data)
+        if player then
+          gui.perform_search(player, player_table, gui_data)
+        end
       end
     end
   end
