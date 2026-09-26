@@ -27,20 +27,6 @@ constants.ignored_item_types = {
 
 constants.infinity_rep = "inf."
 
-constants.input_sanitizers = {
-  ["%("] = "%%(",
-  ["%)"] = "%%)",
-  ["%.^[%*]"] = "%%.",
-  ["%+"] = "%%+",
-  ["%-"] = "%%-",
-  ["^[%.]%*"] = "%%*",
-  ["%?"] = "%%?",
-  ["%["] = "%%[",
-  ["%]"] = "%%]",
-  ["%^"] = "%%^",
-  ["%$"] = "%%$",
-}
-
 constants.logistic_point_data = {
   {
     deliveries_table = "outbound",

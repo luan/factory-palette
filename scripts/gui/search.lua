@@ -138,14 +138,7 @@ function handlers.enter_result_selection(args)
 end
 
 function handlers.update_search_query(args, e)
-  local query = e.text
-
-  -- Sanitize input
-  for pattern, replacement in pairs(constants.input_sanitizers) do
-    query = string.gsub(query, pattern, replacement)
-  end
-
-  args.gui_data.state.query = query
+  args.gui_data.state.query = e.text
   args.gui_data.state.raw_query = e.text
   gui.perform_search(args.player, args.player_table, args.gui_data, true)
 end
@@ -196,6 +189,7 @@ end
 function handlers.toggle_fuzzy_search(args, e)
   local gui_data = args.gui_data
   gui_data.state.fuzzy_search = e.element.state
+  args.player_table.fuzzy_search = e.element.state
   args.update_gui_data(gui_data)
   gui.perform_search(args.player, args.player_table, gui_data)
 end
@@ -454,7 +448,7 @@ function gui.build(player, player_table)
           name = "fuzzy_search",
           caption = { "gui.fpal-fuzzy-search" },
           tooltip = { "gui.fpal-fuzzy-search-description" },
-          state = false,
+          state = player_table.fuzzy_search or false,
           handler = { [defines.events.on_gui_checked_state_changed] = handlers.toggle_fuzzy_search },
         },
         {
@@ -485,7 +479,7 @@ function gui.build(player, player_table)
       selected_index = 1,
       subwindow_open = false,
       visible = false,
-      fuzzy_search = false,
+      fuzzy_search = player_table.fuzzy_search or false,
     },
   }
   -- Populate source checkboxes
@@ -498,11 +492,11 @@ function gui.populate_sources(player, player_table, gui_data)
   sources_flow.clear()
 
   -- Get all available sources
-  local sources = search.all_sources(player.index)
+  local sources = search.all_sources()
 
-  -- Initialize enabled_sources if empty
-  if not next(player_table.enabled_sources) then
-    for name, _ in pairs(sources) do
+  -- Enable newly installed sources without changing existing choices.
+  for name in pairs(sources) do
+    if player_table.enabled_sources[name] == nil then
       player_table.enabled_sources[name] = true
     end
   end
@@ -635,6 +629,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
   end
 
   gui.update_results_table(player_table, results)
+  state.selected_index = math.clamp(state.selected_index, 1, math.max(#results, 1))
 
   local visible_rows = math.min(#results, constants.max_visible_rows)
   elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6

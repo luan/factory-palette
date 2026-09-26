@@ -4,6 +4,7 @@
 ---@field logistic_requests FpalLogisticRequests -- TODO: move this to items source
 ---@field settings table<string, any>
 ---@field enabled_sources table<string, boolean>
+---@field fuzzy_search boolean?
 
 ---@class FpalLogisticRequests
 ---@field by_index table<number, FpalLogisticRequest>
@@ -59,6 +60,7 @@ function player_data.init(player_index)
     logistic_requests = { by_index = {}, by_name = {}, temporary = {} },
     settings = {},
     enabled_sources = {},
+    fuzzy_search = false,
   }
   player_data.refresh(game.get_player(player_index), storage.players[player_index])
 end
@@ -145,7 +147,11 @@ local function on_runtime_mod_setting_changed(e)
 end
 
 function init_player(e)
-  player_data.init(e.player_index)
+  if storage.players[e.player_index] then
+    player_data.refresh(game.get_player(e.player_index), storage.players[e.player_index])
+  else
+    player_data.init(e.player_index)
+  end
 end
 
 function remove_player(e)
