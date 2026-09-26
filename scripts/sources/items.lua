@@ -16,9 +16,13 @@ local function tooltip()
     "\n",
     { "", { "gui.fpal-control-shift-click-tooltip" }, " ", { "factory-palette.source.items.craft-many" } },
     "\n",
-    { "gui.fpal-alt-click-tooltip" },
-    " ",
-    { "factory-palette.source.items.open-in-factoriopedia" },
+    {
+      "",
+      { "gui.fpal-alt-click-tooltip" },
+      " ",
+      remote.interfaces.RecipeBook and { "factory-palette.source.items.open-in-recipe-book" }
+        or { "factory-palette.source.items.open-in-factoriopedia" },
+    },
   }
 end
 
@@ -240,16 +244,19 @@ end
 
 ---@param player LuaPlayer
 ---@param result Result
-local function open_in_factoriopedia(player, result)
+local function open_item_info(player, result)
   local player_table = storage.players[player.index]
   if not player_table then
     return
   end
-  local recipe = player.force.recipes[result.name]
-  if not recipe then
+  local item = prototypes.item[result.name]
+  if not item then
     return false
   end
-  player.open_factoriopedia_gui(recipe.prototype)
+  if remote.interfaces.RecipeBook and remote.interfaces.RecipeBook.open_page then
+    return remote.call("RecipeBook", "open_page", player.index, item)
+  end
+  player.open_factoriopedia_gui(item)
   return true
 end
 
@@ -287,7 +294,7 @@ local function select(data, modifiers)
   elseif modifiers.shift then
     return set_logistic_request(player, result)
   elseif modifiers.alt then
-    return open_in_factoriopedia(player, result)
+    return open_item_info(player, result)
   end
 
   return set_in_cursor(player, result)
