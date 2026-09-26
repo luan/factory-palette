@@ -1,9 +1,11 @@
 local dictionary = require("__flib__.dictionary")
+local math = require("__flib__.math")
 
 local constants = require("constants")
 local cursor = require("scripts.cursor")
 local inventory = require("scripts.sources.inventory")
 local logistic_request_gui = require("scripts.gui.logistic-request")
+local recipe_request_gui = require("scripts.gui.recipe-request")
 
 local function tooltip()
   return {
@@ -15,6 +17,8 @@ local function tooltip()
     { "", { "gui.fpal-control-click-tooltip" }, " ", { "factory-palette.source.items.craft" } },
     "\n",
     { "", { "gui.fpal-control-shift-click-tooltip" }, " ", { "factory-palette.source.items.craft-many" } },
+    "\n",
+    { "", { "gui.fpal-control-alt-click-tooltip" }, " ", { "factory-palette.source.items.request-recipe" } },
     "\n",
     {
       "",
@@ -207,22 +211,49 @@ local function set_logistic_request(player, result)
   end
 
   local gui_data = player_table.guis.search
+  if not gui_data then
+    return false
+  end
   local elems = gui_data.elems
   local state = gui_data.state
-  local player_controller = player.controller_type
-  if player_controller == defines.controllers.editor or player_controller == defines.controllers.character then
-    state.subwindow_open = true
-    elems.search_textfield.enabled = false
-    elems.fpal_window_dimmer.visible = true
-    elems.fpal_window_dimmer.bring_to_front()
-
-    if player_controller == defines.controllers.character then
-      logistic_request_gui.open(player, player_table, result)
-    end
-    return true
+  if player.controller_type ~= defines.controllers.character or not player.force.character_logistic_requests then
+    return false
   end
 
-  return false
+  state.subwindow_open = true
+  elems.search_textfield.enabled = false
+  elems.fpal_window_dimmer.visible = true
+  elems.fpal_window_dimmer.bring_to_front()
+  logistic_request_gui.open(player, player_table, result)
+  return true
+end
+
+local function set_recipe_requests(player, result)
+  local player_table = storage.players[player.index]
+  if
+    not player_table
+    or player.controller_type ~= defines.controllers.character
+    or not player.force.character_logistic_requests
+  then
+    return false
+  end
+  local gui_data = player_table.guis.search
+  if not gui_data then
+    return false
+  end
+
+  local ingredients, output_amount, reason = recipe_request_gui.prepare(player.force.recipes[result.name], result.name)
+  if not ingredients then
+    player.print({ reason })
+    return false
+  end
+
+  gui_data.state.subwindow_open = true
+  gui_data.elems.search_textfield.enabled = false
+  gui_data.elems.fpal_window_dimmer.visible = true
+  gui_data.elems.fpal_window_dimmer.bring_to_front()
+  recipe_request_gui.open(player, player_table, result, ingredients, output_amount)
+  return true
 end
 
 ---@param player LuaPlayer
@@ -287,6 +318,8 @@ local function select(data, modifiers)
 
   if modifiers.control and modifiers.shift then
     return craft(player, result, 10)
+  elseif modifiers.control and modifiers.alt then
+    return set_recipe_requests(player, result)
   elseif modifiers.alt and modifiers.shift and remote.interfaces["factory-search"] then
     return open_in_factory_search(player, result)
   elseif modifiers.control then

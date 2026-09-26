@@ -21,6 +21,7 @@ local dictionary = require("__flib__.dictionary")
 local constants = require("constants")
 
 local logistic_request_gui = require("scripts.gui.logistic-request")
+local recipe_request_gui = require("scripts.gui.recipe-request")
 local search_gui = require("scripts.gui.search")
 
 local player_data = {}
@@ -67,6 +68,7 @@ end
 
 function player_data.refresh(player, player_table)
   -- destroy GUIs
+  recipe_request_gui.destroy(player_table)
   if player_table.guis.request then
     logistic_request_gui.destroy(player_table)
   end

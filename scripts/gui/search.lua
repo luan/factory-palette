@@ -703,6 +703,11 @@ gui.events = {
     :with_param("shift", true)
     :with_gui_check()
     :chain(handlers.select_entry),
+  ["fpal-control-alt-confirm"] = h()
+    :with_param("control", true)
+    :with_param("alt", true)
+    :with_gui_check()
+    :chain(handlers.select_entry),
   ["fpal-control-shift-confirm"] = h()
     :with_param("control", true)
     :with_param("shift", true)

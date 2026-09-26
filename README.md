@@ -24,6 +24,8 @@ Factory Palette is your shortcut to everything in Factorio. Think of it as a com
 - `Enter`: Confirm selection
 - `Shift + Enter`: Alternative action
 - `Ctrl + Enter`: Secondary alternative action
+- `Ctrl + Alt + click` on an item: Request ingredients for a chosen number of items
+- `Enter`, then `Ctrl + Alt + E`: Use the same action from the keyboard
 
 ## Settings
 
