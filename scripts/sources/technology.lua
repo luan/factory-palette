@@ -12,7 +12,7 @@ local function tooltip(result)
     (result.available and not result.researched) and { "gui.fpal-shift-click-tooltip" } or "",
     " ",
     (result.available and not result.researched)
-        and (result.current and { "factory-palette.source.technology.remove" } or {
+        and (result.queued and { "factory-palette.source.technology.remove" } or {
           "factory-palette.source.technology.add",
         })
       or "",
@@ -28,11 +28,24 @@ end
 
 ---@param player LuaPlayer
 ---@param prototype LuaTechnologyPrototype
-local function add_research(player, prototype)
+local function toggle_research(player, prototype)
   local tech = get_technology(player, prototype)
-  if tech then
-    player.force.add_research(tech)
+  if not tech or tech.researched then
+    return false
   end
+  local queue = player.force.research_queue
+  for index, queued in ipairs(queue) do
+    if queued.name == tech.name then
+      if index == 1 then
+        player.force.cancel_current_research()
+      else
+        table.remove(queue, index)
+        player.force.research_queue = queue
+      end
+      return true
+    end
+  end
+  return player.force.add_research(tech)
 end
 
 ---@param player LuaPlayer
@@ -67,7 +80,7 @@ local function is_current(player, prototype)
 end
 
 local function search(args)
-  local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
+  local player, query, fuzzy = args.player, args.query, args.fuzzy
   local i = 0
   local translations = dictionary.get(player.index, "technology")
   local results = {}
@@ -76,12 +89,20 @@ local function search(args)
       local technology = get_technology(player, prototypes.technology[name])
       if technology then
         local current = is_current(player, technology)
+        local queued = false
+        for _, queued_technology in ipairs(player.force.research_queue) do
+          if queued_technology.name == technology.name then
+            queued = true
+            break
+          end
+        end
         local available = is_available(player, technology)
         local color = technology.researched and "[color=green]" or available and "[color=white]" or "[color=60, 60, 60]"
         local current_caption = current and " [img=utility/played_green] " or ""
         local result = {
           name = name,
           current = current,
+          queued = queued,
           available = available,
           researched = technology.researched,
           caption = { color .. "[technology=" .. name .. "]  " .. translation .. current_caption .. "[/color]" },
@@ -128,8 +149,7 @@ local function select(data, modifiers)
   end
 
   if modifiers.shift then
-    add_research(player, technology)
-    return true
+    return toggle_research(player, technology)
   end
 
   if modifiers.control then
