@@ -5,24 +5,16 @@ local cursor = require("scripts.cursor")
 local inventory = require("scripts.sources.inventory")
 local logistic_request_gui = require("scripts.gui.logistic-request")
 
-local function tooltip(result)
+local function tooltip()
   return {
     "",
-    { "gui.fpal-click-tooltip" },
-    " ",
-    { "gui.fpal-set-in-cursor" },
+    { "", { "gui.fpal-click-tooltip" }, " ", { "gui.fpal-set-in-cursor" } },
     "\n",
-    { "gui.fpal-shift-click-tooltip" },
-    " ",
-    { "gui.fpal-set-logistic-request" },
+    { "", { "gui.fpal-shift-click-tooltip" }, " ", { "gui.fpal-set-logistic-request" } },
     "\n",
-    { "gui.fpal-control-click-tooltip" },
-    " ",
-    { "factory-palette.source.items.craft" },
+    { "", { "gui.fpal-control-click-tooltip" }, " ", { "factory-palette.source.items.craft" } },
     "\n",
-    { "gui.fpal-control-shift-click-tooltip" },
-    " ",
-    { "factory-palette.source.items.craft-many" },
+    { "", { "gui.fpal-control-shift-click-tooltip" }, " ", { "factory-palette.source.items.craft-many" } },
     "\n",
     { "gui.fpal-alt-click-tooltip" },
     " ",
@@ -78,7 +70,7 @@ local function search(args)
         contents[data.deliveries_table] = point[data.source_table]
         if data.point_name == "requester" then
           local logistic_network = point.logistic_network
-          if logistic_network.valid then
+          if logistic_network and logistic_network.valid then
             connected_to_network = true
             contents.logistic = logistic_network.get_contents()
           end
@@ -91,7 +83,7 @@ local function search(args)
   local i = 0
   for name, translation in pairs(translations) do
     if remote.call("factory-palette.filter", "filter", translation, query, fuzzy) then
-      local hidden = false -- item_prototypes[name].has_flag("hidden")
+      local hidden = item_prototypes[name].hidden
       if show_hidden or not hidden then
         local inventory_count = contents.inventory[name] or 0
         local logistic_count = contents.logistic[name] or 0
@@ -104,7 +96,7 @@ local function search(args)
           logistic_requests_available = logistic_requests_available,
           logistic = logistic_count,
           translation = translation,
-          tooltip = tooltip(result),
+          tooltip = tooltip(),
         }
         result.remote = {
           "factory-palette.source.items",
@@ -142,8 +134,6 @@ local function search(args)
             .. logistic_count
             .. "[/color]"
           )
-        else
-          inventory_caption = inventory_count
         end
 
         local request_label = ""
@@ -158,14 +148,9 @@ local function search(args)
             if request.is_temporary then
               request_label = "(T) " .. request_label
             end
-            if request_label.style then
-              request_label.style.font_color = constants.colors[result.request_color or "normal"]
-            end
           else
             request_label = "--"
           end
-        else
-          request_label = ""
         end
 
         result.caption = { "[item=" .. name .. "]  " .. translation, inventory_caption, request_label }
@@ -197,6 +182,12 @@ local function craft(player, result, count)
 
   if recipe.prototype.hidden_from_player_crafting then
     return
+  end
+
+  if
+    player.controller_type ~= defines.controllers.character and player.controller_type ~= defines.controllers.remote
+  then
+    return false
   end
 
   local crafting_count = player.begin_crafting({ count = count, recipe = recipe })
@@ -269,13 +260,9 @@ local function open_in_factory_search(player, result)
   if not player_table then
     return
   end
-  local recipe = player.force.recipes[result.name]
-  if not recipe then
-    return
-  end
   remote.call("factory-search", "search", player, {
     type = "item",
-    name = recipe.prototype.name,
+    name = result.name,
   })
   return true
 end
