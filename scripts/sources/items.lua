@@ -243,8 +243,7 @@ local function set_in_cursor(player, result)
     player.create_local_flying_text({ text = { "message.fpal-already-holding-item" }, create_at_cursor = true })
     return false
   else
-    cursor.set_stack(player, player.cursor_stack, player_table, result.name)
-    return true
+    return cursor.set_stack(player, player.cursor_stack, player_table, result.name)
   end
 end
 

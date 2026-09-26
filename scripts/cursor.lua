@@ -19,18 +19,23 @@ function cursor.set_stack(player, cursor_stack, player_table, item_name)
       player.get_inventory(defines.inventory.character_ammo),
       player.get_inventory(defines.inventory.character_guns),
     }) do
-      item_stack, item_stack_index = inventory.find_item_stack(item_name)
-      if item_stack and item_stack.valid then
-        inventory_index = inventory.index
-        break
+      if inventory and inventory.valid then
+        item_stack, item_stack_index = inventory.find_item_stack(item_name)
+        if item_stack and item_stack.valid then
+          inventory_index = inventory.index
+          break
+        end
       end
     end
     if item_stack and item_stack.valid then
-      if player.clear_cursor() then
-        -- actually transfer from the source inventory, then set the hand location
-        cursor_stack.transfer_stack(item_stack)
-        player.hand_location = { inventory = inventory_index, slot = item_stack_index }
+      if not player.clear_cursor() then
+        return false
       end
+      -- actually transfer from the source inventory, then set the hand location
+      if not cursor_stack.transfer_stack(item_stack) then
+        return false
+      end
+      player.hand_location = { inventory = inventory_index, slot = item_stack_index }
       return true
     elseif spawn_item and is_cheating then
       local stack_spec = { name = item_name, count = prototypes.item[item_name].stack_size }
@@ -38,7 +43,9 @@ function cursor.set_stack(player, cursor_stack, player_table, item_name)
       if main_inventory.can_insert(stack_spec) and player.clear_cursor() then
         main_inventory.insert(stack_spec)
         local new_stack, new_stack_index = main_inventory.find_item_stack(item_name)
-        cursor_stack.transfer_stack(new_stack)
+        if not cursor_stack.transfer_stack(new_stack) then
+          return false
+        end
         player.hand_location = { inventory = main_inventory.index, slot = new_stack_index }
       else
         player.create_local_flying_text({
@@ -48,6 +55,7 @@ function cursor.set_stack(player, cursor_stack, player_table, item_name)
         player.play_sound({
           path = "utility/cannot_build",
         })
+        return false
       end
       return true
     end
