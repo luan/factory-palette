@@ -1,10 +1,10 @@
 # Factory Palette
 
-Factory Palette is your shortcut to everything in Factorio. Think of it as a command palette that lets you quickly search and access just about anything in the game - from items and recipes to entities, technologies, keybinds, commands, and more.
+Factory Palette lets you search items, technologies, and supported shortcuts from one palette. Other mods can add more sources.
 
 ## Features
 
-- **Quick Universal Search**: Instantly find items, recipes, entities, technologies, and more
+- **Quick Search**: Find items, technologies, and supported shortcuts
 - **Technology Management**:
   - View technology research status with color coding
   - Add/remove technologies from research queue
