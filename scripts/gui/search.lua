@@ -718,7 +718,7 @@ gui.events = {
   [defines.events.on_lua_shortcut] = h()
     :with_condition("prototype_name", "fpal-search")
     :chain(handlers.toggle_search_gui),
-  [defines.events.on_tick] = h():chain(handlers.on_tick),
+  [defines.events.on_tick] = handlers.on_tick,
 }
 
 flib_gui.add_handlers(handlers, function(e, handler)
