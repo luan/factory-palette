@@ -379,6 +379,11 @@ function logistic_request_gui.set_request(player, player_table, is_temporary, sk
   local elems = gui_data.elems
   local state = gui_data.state
 
+  -- Clicking a button does not confirm the focused textfield.
+  local min = math.clamp(tonumber(elems.min_textfield.text) or 0, 0, math.max_uint)
+  local max = math.clamp(tonumber(elems.max_textfield.text) or math.max_uint, 0, math.max_uint)
+  state.request = { min = min, max = math.max(min, max) }
+
   -- set the request
   logistic_request.set(player, player_table, state.item_data.name, state.request, is_temporary)
 

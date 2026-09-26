@@ -1,16 +1,18 @@
 local inventory = {}
 
-function inventory.get_combined_contents(player, main_inventory)
+function inventory.get_combined_contents(player, main_inventory, quality)
   -- main inventory contents
   local combined_contents = {}
   if main_inventory then
     for _, item in ipairs(main_inventory.get_contents()) do
-      combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+      if not quality or item.quality == quality then
+        combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+      end
     end
   end
   -- cursor stack
   local cursor_stack = player.cursor_stack
-  if cursor_stack and cursor_stack.valid_for_read then
+  if cursor_stack and cursor_stack.valid_for_read and (not quality or cursor_stack.quality.name == quality) then
     combined_contents[cursor_stack.name] = (combined_contents[cursor_stack.name] or 0) + cursor_stack.count
   end
   -- other
@@ -23,7 +25,9 @@ function inventory.get_combined_contents(player, main_inventory)
     local inventory = player.get_inventory(inventory_def)
     if inventory and inventory.valid then
       for _, item in ipairs(inventory.get_contents() or {}) do
-        combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+        if not quality or item.quality == quality then
+          combined_contents[item.name] = (combined_contents[item.name] or 0) + item.count
+        end
       end
     end
   end

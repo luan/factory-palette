@@ -1,9 +1,6 @@
 local math = require("__flib__.math")
-local table = require("__flib__/table")
-
 local inventory = require("scripts.sources.inventory")
 
-local constants = require("constants")
 local h = require("handlers").for_player()
 
 local logistic_request = {}
@@ -19,7 +16,7 @@ local Sections = {
 ---@param counts {min: number, max: number}
 ---@param is_temporary boolean
 function logistic_request.set(player, player_table, name, counts, is_temporary)
-  local section = logistic_request.get_section(player, is_temporary and Sections.Temporary or Sections.Default)
+  local section = logistic_request.get_section(player, is_temporary and Sections.Temporary or Sections.Default, true)
   if not section then
     return
   end
@@ -28,7 +25,7 @@ function logistic_request.set(player, player_table, name, counts, is_temporary)
   local index = section.filters_count + 1
   for i, filter in ipairs(section.filters) do
     local value = filter.value
-    if value.type == "item" and value.name == name then
+    if value and value.type == "item" and value.name == name then
       index = i
       break
     end
@@ -39,6 +36,9 @@ function logistic_request.set(player, player_table, name, counts, is_temporary)
     min = counts.min,
     max = counts.max,
   })
+  if is_temporary then
+    logistic_request.update_temporaries({ player = player, player_table = player_table })
+  end
 end
 
 ---@param player LuaPlayer
@@ -60,7 +60,7 @@ end
 ---@param player LuaPlayer
 ---@param group keyof Sections
 ---@return LuaLogisticSection?
-function logistic_request.get_section(player, group)
+function logistic_request.get_section(player, group, create)
   local character = player.character
   local logistic_point = character and character.get_logistic_point(defines.logistic_member_index.character_requester)
   if not logistic_point then
@@ -72,7 +72,33 @@ function logistic_request.get_section(player, group)
     end
   end
 
-  return logistic_point.add_section(group)
+  if create then
+    return logistic_point.add_section(group)
+  end
+end
+
+local function other_request_max(logistic_point, name)
+  local max
+  for _, section in ipairs(logistic_point.sections) do
+    if section.active and section.group ~= Sections.Temporary then
+      for _, filter in ipairs(section.filters) do
+        if
+          filter.value
+          and filter.value.type == "item"
+          and filter.value.name == name
+          and filter.value.quality == "normal"
+          and filter.value.comparator == "="
+        then
+          if filter.max then
+            max = math.min((max or 0) + math.floor(filter.max * section.multiplier), math.max_uint)
+          else
+            return math.max_uint
+          end
+        end
+      end
+    end
+  end
+  return max
 end
 
 ---@param args {player: LuaPlayer, player_table: FpalPlayerTable}
@@ -83,16 +109,26 @@ function logistic_request.update_temporaries(args)
   if not temporary_section then
     return
   end
+  local logistic_point = player.character.get_logistic_point(defines.logistic_member_index.character_requester)
 
-  local combined_contents = inventory.get_combined_contents(player, player.get_main_inventory())
+  local combined_contents = inventory.get_combined_contents(player, player.get_main_inventory(), "normal")
   for index, filter in ipairs(temporary_section.filters) do
     if filter.value then
       local name = filter.value.name
       local has_count = combined_contents[name] or 0
-      -- if the request has been satisfied
+      local normal_max = other_request_max(logistic_point, name)
+      if not normal_max and logistic_point.trash_not_requested then
+        normal_max = 0
+      end
       if filter.min and has_count >= filter.min and (not filter.max or has_count <= filter.max) then
-        -- clear the temporary request data first to avoid setting the slot twice
-        temporary_section.clear_slot(index)
+        if normal_max and has_count > normal_max then
+          if filter.min ~= 0 then
+            -- Keep excess items without requesting replacements until they are used.
+            temporary_section.set_slot(index, { value = name, min = 0, max = math.max_uint })
+          end
+        else
+          temporary_section.clear_slot(index)
+        end
       end
     end
   end
@@ -101,7 +137,7 @@ end
 ---@param player LuaPlayer
 ---@param player_table FpalPlayerTable
 function logistic_request.quick_trash_all(player, player_table)
-  local logistic_point = player.charter
+  local logistic_point = player.character
     and player.character.get_logistic_point(defines.logistic_member_index.character_requester)
   if not logistic_point then
     return
