@@ -660,7 +660,7 @@ function gui.select_entry(player, player_table, modifiers, index)
         shift = modifiers.shift,
         control = modifiers.control,
         alt = modifiers.alt,
-        confirm = modifiers.confirm
+        confirm = modifiers.confirm,
       }
     end
     if remote.call(result.remote[1], result.remote[2], result.remote[3], clean_modifiers) then

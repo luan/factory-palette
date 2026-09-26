@@ -1,9 +1,6 @@
-local flib_gui = require("__flib__.gui")
 local dictionary = require("__flib__.dictionary")
 
 local h = require("handlers").for_player()
-
-local player_data = require("scripts.player-data")
 
 local search_gui = require("scripts.gui.search")
 local logistic_request_gui = require("scripts.gui.logistic-request")
