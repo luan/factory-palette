@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.7.5
+Date: 2026-09-27
+  Features:
+    - Request recipe ingredients temporarily from item results
+    - Open item pages in Recipe Book when available
+    - Refresh the mod thumbnail
+  Bugfixes:
+    - Preserve literal queries and source preferences
+    - Honor logistic request counts and retain temporary excess
+    - Report cursor transfer failures and skip absent inventories
+    - Toggle queued research correctly and use the Shortcuts-ick interface
+    - Guard item actions, search rendering, and ticks without player context
+---------------------------------------------------------------------------------------------------
 Version: 0.7.4
 Date: 2025-08-16
   Bugfixes:
