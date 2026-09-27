@@ -1,5 +1,3 @@
-local flib_migration = require("__flib__.migration")
-
 local by_version = {
   ["0.2.1"] = function()
     ---@type table<number, FpalPlayerTable>
@@ -37,7 +35,17 @@ local by_version = {
 
 --- @param e ConfigurationChangedData
 local function on_configuration_changed(e)
-  flib_migration.on_config_changed(e, by_version)
+  local change = e.mod_changes[script.mod_name]
+  local old_version = change and change.old_version
+  if not old_version then
+    return
+  end
+
+  for version, migrate in pairs(by_version) do
+    if helpers.compare_versions(old_version, version) < 0 then
+      migrate()
+    end
+  end
 end
 
 local migrations = {}

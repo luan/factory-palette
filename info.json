@@ -1,17 +1,17 @@
 {
   "name": "factory-palette",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "title": "Factory Palette",
   "description": "Search items, technologies, and supported shortcuts from one palette. Other mods can add more sources.",
   "author": "luan",
   "contact": "https://github.com/luan/factory-palette",
   "homepage": "https://github.com/luan/factory-palette",
-  "factorio_version": "2.0",
+  "factorio_version": "2.1",
   "dependencies": [
-    "? base >= 2.0.11",
-    "flib >= 0.7.0",
-    "? Shortcuts-ick >= 2.0.6",
-    "? FactorySearch >= 1.13.3"
+    "? base >= 2.1.0",
+    "flib >= 0.17.0",
+    "? Shortcuts-ick >= 2.1.0",
+    "? FactorySearch >= 1.15.0"
   ],
   "package": {
     "git_publish_branch": "main",

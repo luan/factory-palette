@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.8.0
+Date: 2026-09-27
+  Changes:
+    - Update for Factorio 2.1 and its compatible dependencies
+  Bugfixes:
+    - Replace flib migration and array helpers removed in flib 0.17
+---------------------------------------------------------------------------------------------------
 Version: 0.7.5
 Date: 2026-09-27
   Features:

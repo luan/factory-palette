@@ -1,5 +1,3 @@
-local flib_table = require("__flib__.table")
-
 local search = {}
 
 -- Helper function to check if a string starts with a prefix
@@ -75,10 +73,10 @@ function search.search(player, player_table, query, fuzzy)
       "search",
       { player = player, player_table = player_table, query = query, fuzzy = fuzzy }
     )
-    for _, result in pairs(source_results) do
+    for _, result in ipairs(source_results) do
       result.source = source_name
+      all_results[#all_results + 1] = result
     end
-    all_results = flib_table.array_merge({ all_results, source_results })
   end
   return all_results, filtered_sources
 end
