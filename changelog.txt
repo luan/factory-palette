@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.8.1
+Date: 2026-09-30
+  Bugfixes:
+    - Fix crashes when searching, editing logistic requests, and requesting recipe ingredients
+    - Fix temporary request cleanup when normal requests have a maximum count
+---------------------------------------------------------------------------------------------------
 Version: 0.8.0
 Date: 2026-09-27
   Changes:

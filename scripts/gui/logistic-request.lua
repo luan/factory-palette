@@ -1,5 +1,5 @@
 local flib_gui = require("__flib__.gui")
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 
 local constants = require("constants")
 local events = require("events")
@@ -35,16 +35,16 @@ function handlers.update_request(args, e)
   if e.element.type == "textfield" then
     count = tonumber(e.element.text)
     if count then
-      count = math.clamp(count, 0, math.max_uint)
+      count = flib_math.clamp(count, 0, flib_math.max_uint)
     else
-      count = bound == "min" and 0 or math.max_uint
+      count = bound == "min" and 0 or flib_math.max_uint
     end
-    elems[bound .. "_slider"].slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
+    elems[bound .. "_slider"].slider_value = flib_math.round(count / item_data.stack_size) * item_data.stack_size
   else
     count = e.element.slider_value
     local text
     if bound == "max" and count == item_data.stack_size * 10 then
-      count = math.max_uint
+      count = flib_math.max_uint
       text = constants.infinity_rep
     else
       text = tostring(count)
@@ -52,17 +52,17 @@ function handlers.update_request(args, e)
     elems[bound .. "_textfield"].text = text
   end
   request_data[bound] = count
-  request_data.max = request_data.max or math.max_uint
+  request_data.max = request_data.max or flib_math.max_uint
 
   -- sync border
   if bound == "min" and count > request_data.max then
     request_data.max = count
     elems.max_textfield.text = tostring(count)
-    elems.max_slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
+    elems.max_slider.slider_value = flib_math.round(count / item_data.stack_size) * item_data.stack_size
   elseif bound == "max" and count < request_data.min then
     request_data.min = count
     elems.min_textfield.text = tostring(count)
-    elems.min_slider.slider_value = math.round(count / item_data.stack_size) * item_data.stack_size
+    elems.min_slider.slider_value = flib_math.round(count / item_data.stack_size) * item_data.stack_size
   end
 
   -- switch textfield
@@ -313,7 +313,7 @@ function logistic_request_gui.open(player, player_table, item_data)
   local stack_size = prototypes.item[item_data.name].stack_size
   item_data.stack_size = stack_size
   state.item_data = item_data
-  local request_data = item_data.request or { min = 0, max = math.max_uint }
+  local request_data = item_data.request or { min = 0, max = flib_math.max_uint }
   state.request = request_data
   state.visible = true
 
@@ -325,7 +325,7 @@ function logistic_request_gui.open(player, player_table, item_data)
     local count = request_data[type] or 0
     local textfield = elems[type .. "_textfield"]
     textfield.enabled = true
-    if count >= math.max_uint then
+    if count >= flib_math.max_uint then
       textfield.text = constants.infinity_rep
     else
       textfield.text = tostring(count)
@@ -335,7 +335,7 @@ function logistic_request_gui.open(player, player_table, item_data)
     slider.set_slider_value_step(1)
     slider.set_slider_minimum_maximum(0, stack_size * 10)
     slider.set_slider_value_step(stack_size)
-    slider.slider_value = math.round(count / stack_size) * stack_size
+    slider.slider_value = flib_math.round(count / stack_size) * stack_size
   end
   elems.min_textfield.select_all()
   elems.min_textfield.focus()
@@ -380,8 +380,8 @@ function logistic_request_gui.set_request(player, player_table, is_temporary, sk
   local state = gui_data.state
 
   -- Clicking a button does not confirm the focused textfield.
-  local min = math.clamp(tonumber(elems.min_textfield.text) or 0, 0, math.max_uint)
-  local max = math.clamp(tonumber(elems.max_textfield.text) or math.max_uint, 0, math.max_uint)
+  local min = flib_math.clamp(tonumber(elems.min_textfield.text) or 0, 0, flib_math.max_uint)
+  local max = flib_math.clamp(tonumber(elems.max_textfield.text) or flib_math.max_uint, 0, flib_math.max_uint)
   state.request = { min = min, max = math.max(min, max) }
 
   -- set the request

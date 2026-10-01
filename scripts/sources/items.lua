@@ -1,5 +1,5 @@
 local dictionary = require("__flib__.dictionary")
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 
 local constants = require("constants")
 local cursor = require("scripts.cursor")
@@ -116,7 +116,7 @@ local function search(args)
           -- add logistic request, if one exists
           local request = requests_by_name[name]
           if request then
-            result.request = { min = request.min, max = request.max or math.max_uint }
+            result.request = { min = request.min, max = request.max or flib_math.max_uint }
           end
           -- determine logistic request color
           local color
@@ -148,8 +148,8 @@ local function search(args)
         if logistic_requests_available then
           local request = requests_by_name[name]
           if request then
-            local max = request.max or math.max_uint
-            if max == math.max_uint then
+            local max = request.max or flib_math.max_uint
+            if max == flib_math.max_uint then
               max = constants.infinity_rep
             end
             request_label = request.min .. " / " .. max

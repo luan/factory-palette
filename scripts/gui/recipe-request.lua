@@ -1,5 +1,5 @@
 local flib_gui = require("__flib__.gui")
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 
 local events = require("events")
 local h = require("handlers").for_gui("recipe_request")
@@ -73,7 +73,7 @@ function recipe_request.confirm(player, player_table)
     return
   end
   local count = tonumber(gui_data.elems.count.text)
-  if not count or count < 1 or count > math.max_uint or count ~= math.floor(count) then
+  if not count or count < 1 or count > flib_math.max_uint or count ~= math.floor(count) then
     player.print({ "message.fpal-invalid-recipe-count" })
     return
   end
@@ -83,7 +83,7 @@ function recipe_request.confirm(player, player_table)
   local requests = {}
   for name, amount in pairs(state.ingredients) do
     local needed = math.ceil(crafts * amount)
-    if needed > math.max_uint then
+    if needed > flib_math.max_uint then
       player.print({ "message.fpal-invalid-recipe-count" })
       return
     end
@@ -91,7 +91,7 @@ function recipe_request.confirm(player, player_table)
   end
 
   for name, needed in pairs(requests) do
-    logistic_request.set(player, player_table, name, { min = needed, max = math.max_uint }, true)
+    logistic_request.set(player, player_table, name, { min = needed, max = flib_math.max_uint }, true)
   end
   player_table.confirmed_tick = game.ticks_played
   recipe_request.close(player, player_table)

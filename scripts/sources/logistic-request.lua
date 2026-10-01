@@ -1,4 +1,4 @@
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 local inventory = require("scripts.sources.inventory")
 
 local h = require("handlers").for_player()
@@ -90,9 +90,9 @@ local function other_request_max(logistic_point, name)
           and filter.value.comparator == "="
         then
           if filter.max then
-            max = math.min((max or 0) + math.floor(filter.max * section.multiplier), math.max_uint)
+            max = math.min((max or 0) + math.floor(filter.max * section.multiplier), flib_math.max_uint)
           else
-            return math.max_uint
+            return flib_math.max_uint
           end
         end
       end
@@ -124,7 +124,7 @@ function logistic_request.update_temporaries(args)
         if normal_max and has_count > normal_max then
           if filter.min ~= 0 then
             -- Keep excess items without requesting replacements until they are used.
-            temporary_section.set_slot(index, { value = name, min = 0, max = math.max_uint })
+            temporary_section.set_slot(index, { value = name, min = 0, max = flib_math.max_uint })
           end
         else
           temporary_section.clear_slot(index)

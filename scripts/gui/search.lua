@@ -1,5 +1,5 @@
 local flib_gui = require("__flib__.gui")
-local math = require("__flib__.math")
+local flib_math = require("__flib__.math")
 
 local events = require("events")
 local constants = require("constants")
@@ -111,7 +111,7 @@ function handlers.update_selected_index(args)
     return
   end
   row[1].style.font_color = constants.colors.normal
-  local new_selected_index = math.clamp(selected_index + offset, 1, tbl.count(results_table))
+  local new_selected_index = flib_math.clamp(selected_index + offset, 1, tbl.count(results_table))
   state.selected_index = new_selected_index
   row = tbl.get_row(results_table, new_selected_index)
   if row and row[1] then
@@ -629,7 +629,7 @@ function gui.perform_search(player, player_table, gui_data, updated_query)
   end
 
   gui.update_results_table(player_table, results)
-  state.selected_index = math.clamp(state.selected_index, 1, math.max(#results, 1))
+  state.selected_index = flib_math.clamp(state.selected_index, 1, math.max(#results, 1))
 
   local visible_rows = math.min(#results, constants.max_visible_rows)
   elems.results_scroll_pane.style.height = constants.row_height * visible_rows + 6
