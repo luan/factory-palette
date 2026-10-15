@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.8.2
+Date: 2026-10-15
+  Optimizations:
+    - Reuse the prepared palette window so opening immediately focuses the search field
+    - Allow typing while translated names load without losing the query when they finish
+    - Filter built-in item, technology, and shortcut searches without per-name remote calls
+---------------------------------------------------------------------------------------------------
 Version: 0.8.1
 Date: 2026-09-30
   Bugfixes:

@@ -1,4 +1,5 @@
 local dictionary = require("__flib__.dictionary")
+local filter = require("scripts.search").filter
 local flib_math = require("__flib__.math")
 
 local constants = require("constants")
@@ -34,6 +35,9 @@ local function search(args)
   local player, player_table, query, fuzzy = args.player, args.player_table, args.query, args.fuzzy
   local settings = player_table.settings
   local translations = dictionary.get(player.index, "item")
+  if not translations then
+    return {}
+  end
 
   local item_prototypes = prototypes.item
   local character = player.character
@@ -90,7 +94,7 @@ local function search(args)
   -- perform search
   local i = 0
   for name, translation in pairs(translations) do
-    if remote.call("factory-palette.filter", "filter", translation, query, fuzzy) then
+    if filter(translation, query, fuzzy) then
       local hidden = item_prototypes[name].hidden
       if show_hidden or not hidden then
         local inventory_count = contents.inventory[name] or 0

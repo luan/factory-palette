@@ -1,5 +1,5 @@
 local handler = require("__core__.lualib.event_handler")
-local fzy = require("fzy")
+local search = require("scripts.search")
 
 require("scripts.sources.items")
 require("scripts.sources.shortcuts")
@@ -21,11 +21,5 @@ handler.add_libraries({
 })
 
 remote.add_interface("factory-palette.filter", {
-  filter = function(haystack, needle, fuzzy)
-    if fuzzy then
-      return fzy.has_match(needle, haystack, false)
-    else
-      return string.find(string.lower(haystack), string.lower(needle), 1, true)
-    end
-  end,
+  filter = search.filter,
 })

@@ -1,4 +1,13 @@
+local fzy = require("fzy")
+
 local search = {}
+
+function search.filter(haystack, needle, fuzzy)
+  if fuzzy then
+    return fzy.has_match(needle, haystack, false)
+  end
+  return string.find(string.lower(haystack), string.lower(needle), 1, true)
+end
 
 -- Helper function to check if a string starts with a prefix
 local function starts_with(str, prefix)

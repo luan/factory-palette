@@ -1,4 +1,5 @@
 local dictionary = require("__flib__.dictionary")
+local filter = require("scripts.search").filter
 
 local constants = require("constants")
 
@@ -40,9 +41,12 @@ local function search(args)
   local player, query, fuzzy = args.player, args.query, args.fuzzy
   local i = 0
   local translations = dictionary.get(player.index, "shortcut")
+  if not translations then
+    return {}
+  end
   local results = {}
   for name, translation in pairs(translations) do
-    if supported[name] and remote.call("factory-palette.filter", "filter", translation, query, fuzzy) then
+    if supported[name] and filter(translation, query, fuzzy) then
       local result = {
         name = name,
         caption = { "[shortcut=" .. name .. "]  " .. translation },

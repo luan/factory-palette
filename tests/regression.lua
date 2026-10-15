@@ -1,4 +1,5 @@
 local flib_gui = require("__flib__.gui")
+local dictionary = require("__flib__.dictionary")
 local search_gui = require("scripts.gui.search")
 local request_gui = require("scripts.gui.logistic-request")
 local recipe_gui = require("scripts.gui.recipe-request")
@@ -21,7 +22,10 @@ end
 local function run()
   local player = assert(game.get_player(1), "save must contain a player")
   player.force.character_logistic_requests = true
-  assert(player.character, "save player must have a character")
+  if not player.character then
+    player.set_controller({ type = defines.controllers.god })
+    assert(player.create_character(), "save must support creating a character")
+  end
   player.get_main_inventory().clear()
   player.cursor_stack.clear()
   for _, section in
@@ -30,7 +34,20 @@ local function run()
     section.filters = {}
   end
   local player_table = storage.players[player.index]
+  assert(player_table.flags.can_open_gui and player.is_shortcut_available("fpal-search"))
+  search_gui.build(player, player_table)
+  local prepared_window = player_table.guis.search.elems.fpal_window
+  local prepared_textfield = player_table.guis.search.elems.search_textfield
   search_gui.open(player, player_table)
+  assert(prepared_window.valid and player.opened == prepared_window, "opening must reuse the prepared window")
+  assert(player_table.guis.search.elems.search_textfield == prepared_textfield, "opening must reuse the textfield")
+  -- Input is available during translation, and readiness must preserve it.
+  prepared_textfield.text = "iron"
+  dispatch(player, prepared_textfield, defines.events.on_gui_text_changed, "iron")
+  script.raise_event(dictionary.on_player_dictionaries_ready, { player_index = player.index })
+  assert(player.opened == prepared_window and prepared_textfield.valid)
+  assert(prepared_textfield.text == "iron" and player_table.guis.search.state.query == "iron")
+
   for name in pairs(player_table.enabled_sources) do
     player_table.enabled_sources[name] = name == "regression"
   end
@@ -43,6 +60,36 @@ local function run()
     assert(#gui.elems.results_table.children == count * 4)
     assert(gui.state.selected_index == 1)
     assert(gui.elems.results_scroll_pane.style.minimal_height == math.min(count, 10) * 28 + 6)
+  end
+
+  -- Reopening must start a fresh search without rebuilding the focused textfield.
+  gui.elems.search_textfield.text = "20"
+  dispatch(player, gui.elems.search_textfield, defines.events.on_gui_text_changed, "20")
+  gui.state.selected_index = 20
+  search_gui.close(player, player_table, true)
+  search_gui.open(player, player_table)
+  assert(prepared_window.valid and player.opened == prepared_window)
+  assert(gui.elems.search_textfield == prepared_textfield and prepared_textfield.text == "")
+  assert(gui.state.query == "" and gui.state.raw_query == "" and gui.state.selected_index == 1)
+  assert(#gui.state.results == 0 and #gui.elems.results_table.children == 0)
+  assert(player.is_shortcut_toggled("fpal-search"))
+  assert(player_table.enabled_sources.regression and not player_table.enabled_sources.items)
+
+  -- Restore a missing window before opening (for example, after another mod removes it).
+  search_gui.close(player, player_table, true)
+  prepared_window.destroy()
+  search_gui.open(player, player_table)
+  assert(player.opened.valid and player.opened == player_table.guis.search.elems.fpal_window)
+  assert(player_table.guis.search.elems.search_textfield.valid)
+
+  for _, case in ipairs({
+    { "Iron Plate", "iron", false, true },
+    { "Iron Plate", "iPl", false, false },
+    { "Iron Plate", "iPl", true, true },
+    { "Iron Plate", "zz", true, false },
+    { "Iron Plate", ".", false, false },
+  }) do
+    assert(not not remote.call("factory-palette.filter", "filter", case[1], case[2], case[3]) == case[4])
   end
 
   request_gui.build(player, player_table)

@@ -17,7 +17,6 @@
 ---@field max number
 ---@field age number
 
-local dictionary = require("__flib__.dictionary")
 local constants = require("constants")
 
 local logistic_request_gui = require("scripts.gui.logistic-request")
@@ -79,19 +78,11 @@ function player_data.refresh(player, player_table)
   -- update settings
   player_data.update_settings(player, player_table)
 
-  -- Rebuild GUIs and re-enable shortcuts if dictionaries are ready
-  local translations = dictionary.get(player.index, "item")
-  if translations then
-    logistic_request_gui.build(player, player_table)
-    search_gui.build(player, player_table)
-    player.set_shortcut_available("fpal-search", true)
-    player_table.flags.can_open_gui = true
-  else
-    -- If dictionaries aren't ready, mark for enabling after translation
-    player_table.flags.show_message_after_translation = true
-    player_table.flags.can_open_gui = false
-    player.set_shortcut_available("fpal-search", false)
-  end
+  -- Prepare the input before translations finish so the hotkey is always ready.
+  logistic_request_gui.build(player, player_table)
+  search_gui.build(player, player_table)
+  player.set_shortcut_available("fpal-search", true)
+  player_table.flags.can_open_gui = true
 end
 
 function player_data.update_settings(player, player_table)

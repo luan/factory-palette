@@ -528,9 +528,15 @@ function gui.destroy(player_table)
 end
 
 function gui.open(player, player_table)
-  gui.destroy(player_table)
-  gui.build(player, player_table)
   local gui_data = player_table.guis.search
+  if not gui_data or not gui_data.elems.fpal_window.valid then
+    gui.build(player, player_table)
+    gui_data = player_table.guis.search
+  end
+  gui_data.state.query = ""
+  gui_data.state.raw_query = ""
+  gui_data.state.selected_index = 1
+  gui_data.elems.search_textfield.text = ""
   gui_data.elems.fpal_window.visible = true
   gui_data.state.visible = true
   player.set_shortcut_toggled("fpal-search", true)
