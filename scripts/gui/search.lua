@@ -150,7 +150,7 @@ function handlers.toggle_search_gui(args)
     player.print({ "message.fpal-cannot-open-gui" })
     return
   end
-  gui.toggle(player, player_table, false)
+  gui.toggle(player, player_table)
 end
 
 function handlers.reopen_after_subwindow(args)
@@ -419,7 +419,7 @@ function gui.build(player, player_table)
             name = "results_scroll_pane",
             type = "scroll-pane",
             style = "fpal_list_box_scroll_pane",
-            style_mods = { vertically_stretchable = true, bottom_padding = 2, maximal_height = 28 * 10 },
+            style_mods = { vertically_stretchable = true, bottom_padding = 2, maximal_height = 28 * 10, height = 0 },
             visible = true,
             {
               name = "results_table",
@@ -477,6 +477,7 @@ function gui.build(player, player_table)
       query = "",
       raw_query = "",
       selected_index = 1,
+      results = {},
       subwindow_open = false,
       visible = false,
       fuzzy_search = player_table.fuzzy_search or false,
@@ -533,21 +534,13 @@ function gui.open(player, player_table)
     gui.build(player, player_table)
     gui_data = player_table.guis.search
   end
-  gui_data.state.query = ""
-  gui_data.state.raw_query = ""
-  gui_data.state.selected_index = 1
-  gui_data.elems.search_textfield.text = ""
   gui_data.elems.fpal_window.visible = true
   gui_data.state.visible = true
   player.set_shortcut_toggled("fpal-search", true)
   player.opened = gui_data.elems.fpal_window
 
   gui_data.elems.search_textfield.focus()
-  gui_data.elems.search_textfield.select_all()
-
-  -- update the table right away
-  gui.perform_search(player, player_table, gui_data)
-
+  gui_data.state.last_search_update = game.ticks_played
   storage.update_search_results[player.index] = true
 end
 
@@ -568,18 +561,28 @@ function gui.close(player, player_table, force_close)
     if player.opened == elems.fpal_window then
       player.opened = nil
     end
+
+    -- Prepare the next opening while the palette is hidden.
+    state.query = ""
+    state.raw_query = ""
+    state.selected_index = 1
+    state.results = {}
+    elems.search_textfield.text = ""
+    gui.clear_results(elems.results_table)
+    elems.results_scroll_pane.style.height = 0
+    elems.source_filter.visible = false
   end
   storage.update_search_results[player.index] = nil
 end
 
-function gui.toggle(player, player_table, force_open)
+function gui.toggle(player, player_table)
   local gui_data = player_table.guis.search
   if not gui_data then
     return
   end
   if gui_data.state.visible then
     gui.close(player, player_table)
-  elseif force_open or player.opened_gui_type and player.opened_gui_type == defines.gui_type.none then
+  else
     gui.open(player, player_table)
   end
 end

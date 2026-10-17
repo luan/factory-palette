@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.8.3
+Date: 2026-10-17
+  Bugfixes:
+    - Open the palette when another GUI is already open
+  Optimizations:
+    - Clear the previous search on close so opening only shows and focuses the prepared window
+---------------------------------------------------------------------------------------------------
 Version: 0.8.2
 Date: 2026-10-15
   Optimizations:

@@ -38,9 +38,14 @@ local function run()
   search_gui.build(player, player_table)
   local prepared_window = player_table.guis.search.elems.fpal_window
   local prepared_textfield = player_table.guis.search.elems.search_textfield
-  search_gui.open(player, player_table)
+  local other_window = player.gui.screen.add({ type = "frame", name = "palette-test-other-window" })
+  player.opened = other_window
+  search_gui.events["fpal-search"]({ player_index = player.index })
   assert(prepared_window.valid and player.opened == prepared_window, "opening must reuse the prepared window")
   assert(player_table.guis.search.elems.search_textfield == prepared_textfield, "opening must reuse the textfield")
+  assert(#player_table.guis.search.state.results == 0)
+  assert(player_table.guis.search.elems.results_scroll_pane.style.minimal_height == 0)
+  other_window.destroy()
   -- Input is available during translation, and readiness must preserve it.
   prepared_textfield.text = "iron"
   dispatch(player, prepared_textfield, defines.events.on_gui_text_changed, "iron")
@@ -67,7 +72,9 @@ local function run()
   dispatch(player, gui.elems.search_textfield, defines.events.on_gui_text_changed, "20")
   gui.state.selected_index = 20
   search_gui.close(player, player_table, true)
-  search_gui.open(player, player_table)
+  assert(not prepared_window.visible and #gui.elems.results_table.children == 0)
+  assert(prepared_textfield.text == "" and #gui.state.results == 0)
+  search_gui.events["fpal-search"]({ player_index = player.index })
   assert(prepared_window.valid and player.opened == prepared_window)
   assert(gui.elems.search_textfield == prepared_textfield and prepared_textfield.text == "")
   assert(gui.state.query == "" and gui.state.raw_query == "" and gui.state.selected_index == 1)
