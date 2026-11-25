@@ -80,8 +80,18 @@ local function is_current(player, prototype)
   return player.force.current_research and player.force.current_research.prototype == tech.prototype
 end
 
+---@param technology LuaTechnology
+---@return boolean
+local function is_visible(technology)
+  if technology.prototype.hidden then
+    return false
+  end
+  return technology.enabled or technology.visible_when_disabled
+end
+
 local function search(args)
   local player, query, fuzzy = args.player, args.query, args.fuzzy
+  local show_hidden = args.player_table.settings.show_hidden
   local i = 0
   local translations = dictionary.get(player.index, "technology")
   if not translations then
@@ -91,7 +101,7 @@ local function search(args)
   for name, translation in pairs(translations) do
     if filter(translation, query, fuzzy) then
       local technology = get_technology(player, prototypes.technology[name])
-      if technology then
+      if technology and (show_hidden or is_visible(technology)) then
         local current = is_current(player, technology)
         local queued = false
         for _, queued_technology in ipairs(player.force.research_queue) do

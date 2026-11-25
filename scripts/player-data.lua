@@ -33,7 +33,7 @@ function player_data.on_init()
 end
 
 function player_data.on_runtime_mod_setting_changed(e)
-  if string.sub(e.setting, 1, 4) == "fpal-" and e.setting_type == "runtime-per-user" then
+  if string.sub(e.setting, 1, 5) == "fpal-" and e.setting_type == "runtime-per-user" then
     local player = game.get_player(e.player_index)
     if not player then
       return
@@ -129,7 +129,7 @@ local on_player_inventory_changed = function(e)
 end
 
 local function on_runtime_mod_setting_changed(e)
-  if string.sub(e.setting, 1, 4) ~= "fpal-" or not e.player_index then
+  if string.sub(e.setting, 1, 5) ~= "fpal-" or not e.player_index then
     return
   end
   local player = game.get_player(e.player_index)
